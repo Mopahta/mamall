@@ -1,0 +1,14 @@
+{
+  "name": "stun-server",
+  "version": "1.0.0",
+  "description": "STUN server for Mamall Web Application",
+  "main": "stun-server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Mopahta",
+  "license": "ISC",
+  "dependencies": {
+    "stun": "2.1.0"
+  }
+}
