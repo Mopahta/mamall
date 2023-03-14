@@ -25,15 +25,14 @@ server.on('bindingRequest', async (req, rinfo) => {
     console.log("MESSAGE")
     console.log(message)
 
-    await server.send(message, rinfo.port, rinfo.address, (req, res) => {
-        console.log("MESSAGE SENT")
-        console.log('---');
-        console.log("REQUEST:")
-        console.log(req)
-
-        console.log("res")
-        console.log(res)
-        console.log('---');
+    server.send(message, rinfo.port, rinfo.address,
+        (err) => {
+        if (err) {
+            console.error('Failed to send response !!')
+        } 
+        else {
+            console.log('Response sent successfully')
+        }
     })
 })
 

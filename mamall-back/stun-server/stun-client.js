@@ -1,6 +1,9 @@
+const dgram = require('node:dgram');
 const stun = require('stun')
 
-stun.request('mamont.sytes.net:3478', (err, res) => {
+const socket = dgram.createSocket({ type: 'udp4' });
+ 
+stun.request('localhost', {socket: socket}, (err, res) => {
     if (err) {
         console.error(err);
     } else {
@@ -8,4 +11,15 @@ stun.request('mamont.sytes.net:3478', (err, res) => {
         const { address } = res.getXorAddress();
         console.log('your ip', address);
     }
+});
+
+
+
+socket.on('message', (message) => {
+    console.log("MESSAGE SOCKet")
+    const response = stun.decode(message);
+    // do stuff ...
+    console.log(response)
+        const { address } = response.getXorAddress();
+        console.log('your ip', address);
 });
