@@ -1,26 +1,55 @@
 const stun = require('stun')
 
-// const server = stun.createServer((request, response) => {
-
-// })
+const {
+    STUN_ALLOCATE_REQUEST,
+    STUN_ATTR_XOR_MAPPED_ADDRESS
+} = stun.constants
 
 const server = stun.createServer({type: 'udp4'})
 
 server.listen(3478, 'localhost', function() {
     console.log('STUN server started on port 3478');
+    console.log('--------------------------------');
 })
-server.on('bindingRequest', (req) => {
-    let message = stun.createMessage(stun.STUN_ALLOCATE_RESPONSE)
-    message.setType(stun.STUN_ALLOCATE_RESPONSE)
-    console.log(message)
-    message.addAttribute(server.STUN_ATTR_XOR_MAPPED_ADDRESS, '8.8.8.8', 19302)
-    console.log(message)
-    console.log("bindingrequest")
 
-}).on('bindingIndication', () => {
+server.on('message', (msg, rinfo) => {
+    console.log(`server got: ${msg} from ${rinfo.address}:${rinfo.port}`);
+})
+
+server.on('bindingRequest', async (req, rinfo) => {
+    console.log("REQUEST:")
+    console.log(req)
+
+    console.log("RINFO")
+    console.log('-----');
+    console.log(rinfo)
+
+    let message = stun.createMessage(STUN_ALLOCATE_REQUEST)
+    message.addAttribute(STUN_ATTR_XOR_MAPPED_ADDRESS, rinfo.address, rinfo.port)
+
+    console.log("MESSAGE")
+    console.log(message)
+
+    await server.send(message, rinfo.port, rinfo.address, (req, res) => {
+        console.log("MESSAGE SENT")
+        console.log('---');
+        console.log("REQUEST:")
+        console.log(req)
+
+        console.log("res")
+        console.log(res)
+        console.log('---');
+    })
+})
+
+server.on('bindingIndication', () => {
     console.log("bindingIndication")
-}).on('bindingResponse', () => {
+})
+
+server.on('bindingResponse', () => {
     console.log('bindingResponse')
-}).on('bindingError', () => {
+})
+
+server.on('bindingError', () => {
     console.log('bindingError')
 });
