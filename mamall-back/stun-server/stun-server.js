@@ -7,11 +7,6 @@ const {
 
 const server = stun.createServer({type: 'udp4'})
 
-server.listen(3478, 'localhost', function() {
-    console.log('STUN server started on port 3478');
-    console.log('--------------------------------');
-})
-
 server.on('message', (msg, rinfo) => {
     console.log(`server got: ${msg} from ${rinfo.address}:${rinfo.port}`);
 })
@@ -53,3 +48,8 @@ server.on('bindingResponse', () => {
 server.on('bindingError', () => {
     console.log('bindingError')
 });
+
+server.listen(3478, '0.0.0.0', function() {
+    console.log('STUN server started at 0.0.0.0:3478');
+    console.log('-----------------------------------');
+})

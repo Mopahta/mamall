@@ -1,6 +1,6 @@
 const stun = require('stun')
 
-stun.request('localhost:3478', (err, res) => {
+stun.request('mamont.sytes.net:3478', (err, res) => {
     if (err) {
         console.error(err);
     } else {
