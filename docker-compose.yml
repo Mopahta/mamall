@@ -1,0 +1,8 @@
+version: "3.9"
+services:
+    stun-server:
+        build: ./mamall-back/stun-server
+        ports:
+            - "3478:3478/udp"
+        volumes:
+            - ./mamall-back/stun-server:/app/src

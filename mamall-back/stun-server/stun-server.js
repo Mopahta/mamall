@@ -18,9 +18,6 @@ server.on('bindingRequest', async (req, rinfo) => {
     console.log(rinfo)
     message.addAttribute(STUN_ATTR_XOR_MAPPED_ADDRESS, rinfo.address, rinfo.port)
 
-    console.log("MESSAGE")
-    console.log(message)
-
     server.send(message, rinfo.port, rinfo.address,
         (err) => {
         if (err) {
