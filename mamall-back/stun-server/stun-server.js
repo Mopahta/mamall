@@ -8,18 +8,14 @@ const {
 const server = stun.createServer({type: 'udp4'})
 
 server.on('message', (msg, rinfo) => {
-    console.log(`server got: ${msg} from ${rinfo.address}:${rinfo.port}`);
+    console.log(`STUN server: got: ${msg} from ${rinfo.address}:${rinfo.port}`);
 })
 
 server.on('bindingRequest', async (req, rinfo) => {
-    console.log("REQUEST:")
-    console.log(req)
-
-    console.log("RINFO")
-    console.log('-----');
-    console.log(rinfo)
+    console.log("STUN server: bindingRequest")
 
     let message = stun.createMessage(STUN_ALLOCATE_REQUEST)
+    console.log(rinfo)
     message.addAttribute(STUN_ATTR_XOR_MAPPED_ADDRESS, rinfo.address, rinfo.port)
 
     console.log("MESSAGE")
@@ -28,10 +24,10 @@ server.on('bindingRequest', async (req, rinfo) => {
     server.send(message, rinfo.port, rinfo.address,
         (err) => {
         if (err) {
-            console.error('Failed to send response !!')
+            console.error('STUN server: failed to send response')
         } 
         else {
-            console.log('Response sent successfully')
+            console.log('STUN server: response sent successfully')
         }
     })
 })
