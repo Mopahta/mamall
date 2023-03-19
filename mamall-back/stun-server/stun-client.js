@@ -1,5 +1,4 @@
 const dgram = require('node:dgram');
-const intel = require('intel')
 const stun = require('stun')
 
 const socket = dgram.createSocket({ type: 'udp4' });
