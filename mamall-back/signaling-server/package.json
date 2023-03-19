@@ -1,0 +1,22 @@
+{
+  "name": "signaling-server",
+  "version": "1.0.0",
+  "description": "Signaling server for Mamall web app",
+  "main": "signal-server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Mopahta/mamall.git"
+  },
+  "author": "Mopahta",
+  "license": "ISC",
+  "dependencies": {
+    "websocket": "1.0.34"
+  },
+  "bugs": {
+    "url": "https://github.com/Mopahta/mamall/issues"
+  },
+  "homepage": "https://github.com/Mopahta/mamall#readme"
+}
