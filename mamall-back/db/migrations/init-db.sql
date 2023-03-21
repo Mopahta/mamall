@@ -6,7 +6,7 @@ CREATE SCHEMA IF NOT EXISTS mamall ;
 DROP TABLE IF EXISTS mamall.online_statuses ;
 
 CREATE TABLE IF NOT EXISTS mamall.online_statuses (
-  online_status_id INT NOT NULL,
+  online_status_id SERIAL,
   description VARCHAR(60) NULL,
   PRIMARY KEY (online_status_id));
 
@@ -17,7 +17,7 @@ CREATE TABLE IF NOT EXISTS mamall.online_statuses (
 DROP TABLE IF EXISTS mamall.users ;
 
 CREATE TABLE IF NOT EXISTS mamall.users (
-  user_id BIGINT NOT NULL,
+  user_id BIGSERIAL,
   username VARCHAR(45) NULL,
   password VARCHAR(65) NULL,
   email VARCHAR(45) NULL,
@@ -38,8 +38,8 @@ CREATE TABLE IF NOT EXISTS mamall.users (
 DROP TABLE IF EXISTS mamall.contacts ;
 
 CREATE TABLE IF NOT EXISTS mamall.contacts (
-  user_id INT NOT NULL,
-  contact_id INT NOT NULL,
+  user_id BIGINT NOT NULL,
+  contact_id BIGINT NOT NULL,
   contact_nickname VARCHAR(45) NULL,
   contact_since TIMESTAMP NULL,
   PRIMARY KEY (user_id, contact_id),
@@ -61,7 +61,7 @@ CREATE TABLE IF NOT EXISTS mamall.contacts (
 DROP TABLE IF EXISTS mamall.room_modes ;
 
 CREATE TABLE IF NOT EXISTS mamall.room_modes (
-  mode_id INT NOT NULL,
+  mode_id SERIAL,
   description VARCHAR(60) NULL,
   PRIMARY KEY (mode_id));
 
@@ -72,7 +72,7 @@ CREATE TABLE IF NOT EXISTS mamall.room_modes (
 DROP TABLE IF EXISTS mamall.rooms ;
 
 CREATE TABLE IF NOT EXISTS mamall.rooms (
-  room_id BIGINT NOT NULL,
+  room_id BIGSERIAL,
   name VARCHAR(45) NULL,
   room_mode_id INT NOT NULL,
   PRIMARY KEY (room_id),
@@ -89,7 +89,7 @@ CREATE TABLE IF NOT EXISTS mamall.rooms (
 DROP TABLE IF EXISTS mamall.acc_states ;
 
 CREATE TABLE IF NOT EXISTS mamall.acc_states (
-  acc_state_id INT NOT NULL,
+  acc_state_id SERIAL,
   description VARCHAR(60) NULL,
   PRIMARY KEY (acc_state_id));
 
@@ -100,7 +100,7 @@ CREATE TABLE IF NOT EXISTS mamall.acc_states (
 DROP TABLE IF EXISTS mamall.user_room_roles ;
 
 CREATE TABLE IF NOT EXISTS mamall.user_room_roles (
-  role_id INT NOT NULL,
+  role_id SERIAL;
   description VARCHAR(60) NULL,
   role_value INT NULL,
   PRIMARY KEY (role_id));
@@ -113,7 +113,7 @@ DROP TABLE IF EXISTS mamall.room_user ;
 
 CREATE TABLE IF NOT EXISTS mamall.room_user (
   room_id BIGINT NOT NULL,
-  user_id INT NOT NULL,
+  user_id BIGINT NOT NULL,
   user_room_nickname VARCHAR(45) NULL,
   user_role_id INT NOT NULL,
   PRIMARY KEY (room_id, user_id),
@@ -140,7 +140,7 @@ CREATE TABLE IF NOT EXISTS mamall.room_user (
 DROP TABLE IF EXISTS mamall.user_acc_state ;
 
 CREATE TABLE IF NOT EXISTS mamall.user_acc_state (
-  user_id INT NOT NULL,
+  user_id BIGINT NOT NULL,
   acc_state_id INT NOT NULL,
   state_until TIMESTAMP NULL,
   PRIMARY KEY (user_id, acc_state_id),
@@ -162,7 +162,7 @@ CREATE TABLE IF NOT EXISTS mamall.user_acc_state (
 DROP TABLE IF EXISTS mamall.user_privacy_sets ;
 
 CREATE TABLE IF NOT EXISTS mamall.user_privacy_sets (
-  user_id INT NOT NULL,
+  user_id BIGINT NOT NULL,
   room_invite_not_contact_allowed SMALLINT NULL,
   PRIMARY KEY (user_id),
   CONSTRAINT fk_user_privacy_sets_users1
@@ -178,7 +178,7 @@ CREATE TABLE IF NOT EXISTS mamall.user_privacy_sets (
 DROP TABLE IF EXISTS mamall.files ;
 
 CREATE TABLE IF NOT EXISTS mamall.files (
-  file_id INT NOT NULL,
+  file_id  BIGSERIAL,
   file_url VARCHAR(256) NULL,
   file_path VARCHAR(256) NULL,
   PRIMARY KEY (file_id));
@@ -190,8 +190,8 @@ CREATE TABLE IF NOT EXISTS mamall.files (
 DROP TABLE IF EXISTS mamall.user_icon ;
 
 CREATE TABLE IF NOT EXISTS mamall.user_icon (
-  user_id INT NOT NULL,
-  file_id INT NOT NULL,
+  user_id BIGINT NOT NULL,
+  file_id BIGINT NOT NULL,
   active SMALLINT NULL,
   PRIMARY KEY (user_id),
   CONSTRAINT fk_user_icon_user_files1
@@ -212,12 +212,12 @@ CREATE TABLE IF NOT EXISTS mamall.user_icon (
 DROP TABLE IF EXISTS mamall.room_message ;
 
 CREATE TABLE IF NOT EXISTS mamall.room_message (
-  message_id INT NOT NULL,
+  message_id BIGSERIAL,
   room_id BIGINT NOT NULL,
   message VARCHAR(300) NULL,
-  sender_id INT NOT NULL,
+  sender_id BIGINT NOT NULL,
   time_sent TIMESTAMP NULL,
-  reply_to_message_id INT NULL,
+  reply_to_message_id BIGINT NULL,
   PRIMARY KEY (message_id),
   CONSTRAINT fk_room_message_users1
     FOREIGN KEY (sender_id)
@@ -236,8 +236,8 @@ CREATE TABLE IF NOT EXISTS mamall.room_message (
 DROP TABLE IF EXISTS mamall.message_files ;
 
 CREATE TABLE IF NOT EXISTS mamall.message_files (
-  message_id INT NOT NULL,
-  file_id INT NOT NULL,
+  message_id BIGINT NOT NULL,
+  file_id BIGINT NOT NULL,
   date_uploaded TIMESTAMP NULL,
   file_size INT NULL,
   PRIMARY KEY (message_id, file_id),
