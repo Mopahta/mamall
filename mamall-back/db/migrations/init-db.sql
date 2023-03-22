@@ -18,11 +18,11 @@ DROP TABLE IF EXISTS mamall.users ;
 
 CREATE TABLE IF NOT EXISTS mamall.users (
   user_id BIGSERIAL,
-  username VARCHAR(45) NULL,
-  password VARCHAR(65) NULL,
+  username VARCHAR(45) NOT NULL UNIQUE,
+  password VARCHAR(65) NOT NULL,
   email VARCHAR(45) NULL,
-  date_registered TIMESTAMP NULL,
-  online_status_id INT NOT NULL,
+  date_registered TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  online_status_id INT NOT NULL DEFAULT 1,
   icon_file_id INT NULL,
   PRIMARY KEY (user_id),
   CONSTRAINT fk_users_table11
@@ -41,7 +41,8 @@ CREATE TABLE IF NOT EXISTS mamall.contacts (
   user_id BIGINT NOT NULL,
   contact_id BIGINT NOT NULL,
   contact_nickname VARCHAR(45) NULL,
-  contact_since TIMESTAMP NULL,
+  contact_since TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP,
+  CHECK (user_id <> contact_id),
   PRIMARY KEY (user_id, contact_id),
   CONSTRAINT fk_contacts_users
     FOREIGN KEY (user_id)
@@ -73,8 +74,8 @@ DROP TABLE IF EXISTS mamall.rooms ;
 
 CREATE TABLE IF NOT EXISTS mamall.rooms (
   room_id BIGSERIAL,
-  name VARCHAR(45) NULL,
-  room_mode_id INT NOT NULL,
+  name VARCHAR(45) NOT NULL,
+  room_mode_id INT NOT NULL DEFAULT 1,
   PRIMARY KEY (room_id),
   CONSTRAINT fk_rooms_room_modes1
     FOREIGN KEY (room_mode_id)
@@ -162,8 +163,8 @@ CREATE TABLE IF NOT EXISTS mamall.user_acc_state (
 DROP TABLE IF EXISTS mamall.user_privacy_sets ;
 
 CREATE TABLE IF NOT EXISTS mamall.user_privacy_sets (
-  user_id BIGINT NOT NULL,
-  room_invite_not_contact_allowed SMALLINT NULL,
+  user_id BIGINT NOT NULL UNIQUE,
+  room_invite_not_contact_allowed SMALLINT DEFAULT 0,
   PRIMARY KEY (user_id),
   CONSTRAINT fk_user_privacy_sets_users1
     FOREIGN KEY (user_id)
@@ -192,7 +193,7 @@ DROP TABLE IF EXISTS mamall.user_icon ;
 CREATE TABLE IF NOT EXISTS mamall.user_icon (
   user_id BIGINT NOT NULL,
   file_id BIGINT NOT NULL,
-  active SMALLINT NULL,
+  active SMALLINT NULL DEFAULT 0,
   PRIMARY KEY (user_id),
   CONSTRAINT fk_user_icon_user_files1
     FOREIGN KEY (file_id)
@@ -216,7 +217,7 @@ CREATE TABLE IF NOT EXISTS mamall.room_message (
   room_id BIGINT NOT NULL,
   message VARCHAR(300) NULL,
   sender_id BIGINT NOT NULL,
-  time_sent TIMESTAMP NULL,
+  time_sent TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP,
   reply_to_message_id BIGINT NULL,
   PRIMARY KEY (message_id),
   CONSTRAINT fk_room_message_users1
@@ -238,7 +239,7 @@ DROP TABLE IF EXISTS mamall.message_files ;
 CREATE TABLE IF NOT EXISTS mamall.message_files (
   message_id BIGINT NOT NULL,
   file_id BIGINT NOT NULL,
-  date_uploaded TIMESTAMP NULL,
+  date_uploaded TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP,
   file_size INT NULL,
   PRIMARY KEY (message_id, file_id),
   CONSTRAINT fk_message_files_room_message1
