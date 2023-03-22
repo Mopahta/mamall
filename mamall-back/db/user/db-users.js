@@ -95,6 +95,37 @@ const config = require('../config/config');
         return user;
     }
 
+    module.exports.setUserOnlineStatus = async function(id, status_id) {
+
+        if (!pool) {
+            console.error("Pool not initialized in db-users.")
+            return null
+        }
+
+        let user;
+        let query =  {
+            name: 'set-user-online-status',
+            text: `UPDATE ${config.pgschema}.users
+                    SET (online_status_id) = ($1)
+                    WHERE id = $2;`,
+            values: [status_id, id]
+        }
+        
+        let res;
+        try {
+            res = await pool.query(query);
+
+            if (res.rows.length >= 1) {
+                user = res.rows[0];
+            }
+        }
+        catch (err) {
+            console.error(err.stack);
+        }
+
+        return user;
+    }
+
     module.exports.getUserContacts = async function(id) {
         
         if (!pool) {
@@ -131,4 +162,158 @@ const config = require('../config/config');
         return contacts;
     }
 
+    module.exports.getUserActiveIconPath = async function(id) {
+        if (!pool) {
+            console.error("Pool not initialized in db-users.")
+            return null
+        }
+
+
+        let activeIcon;
+        let query =  {
+            name: 'get-user-active-icon-path',
+            text: `SELECT file_url, file_path
+                    FROM 
+                    (SELECT icon_file_id 
+                    FROM ${config.pgschema}.users
+                    WHERE user_id = $1) AS ui
+                    INNER JOIN 
+                    ${config.pgschema}.files
+                    ON ui.file_id = files.file_id;`,
+            values: [id]
+        }
+        
+        try {
+            let res = await pool.query(query);
+
+            if (res.rows >= 1) {
+                activeIcon = res.rows[0];
+            }
+        }
+        catch (err) {
+            console.error(err.stack);
+        }
+
+        return activeIcon;
+    }
+
+    module.exports.getUserPrivacySets = async function(id) {
+        if (!pool) {
+            console.error("Pool not initialized in db-users.")
+            return null
+        }
+
+        let privacySets;
+        let query =  {
+            name: 'get-user-privacy-sets',
+            text: `SELECT *
+                    FROM ${config.pgschema}.user_privacy_sets AS sets
+                    WHERE sets.user_id = $1`,
+            values: [id]
+        }
+        
+        try {
+            let res = await pool.query(query);
+
+            if (res.rows >= 1) {
+                privacySets = res.rows[0];
+            }
+        }
+        catch (err) {
+            console.error(err.stack);
+        }
+
+        return privacySets;
+    }
+
+    module.exports.addUser = async function(userInfo) {
+
+        if (!pool) {
+            console.error("Pool not initialized in db-users.")
+            return null
+        }
+
+        let query =  {
+            name: 'add-user',
+            text: `INSERT INTO 
+                    ${config.pgschema}.users 
+                    (username, pass, email) 
+                    VALUES 
+                    ($1, $2, $3);`,
+            values: [userInfo.username, userInfo.pass, 
+                userInfo.email, userInfo.icon_file_id]
+        }
+        
+        try {
+            let res = await pool.query(query);
+        }
+        catch (err) {
+            console.error(err.stack);
+            return false;
+        }
+
+        return true;
+
+    }
+
+    module.exports.updateUserIcon = async function(userId, fileId) {
+
+        if (!pool) {
+            console.error("Pool not initialized in db-users.")
+            return null
+        }
+
+        let query =  {
+            name: 'update-user-icon',
+            text: `UPDATE ${config.pgschema}.users 
+                    SET (icon_file_id) = ($1)
+                    WHERE user_id = $2;`,
+            values: [fileId, userId]
+        }
+
+        try {
+            let res = await pool.query(query);
+        }
+        catch (err) {
+            console.error(err.stack);
+            return false;
+        }
+        
+        return true;
+
+    }
+
+    module.exports.addContact = async function(contact) {
+
+        if (!pool) {
+            console.error("Pool not initialized in db-users.")
+            return null
+        }
+
+        if (contact.user_id === contact.contact_id) {
+            console.error("Contact id is the same as user id.")
+            return false;
+        }
+
+        let query =  {
+            name: 'add-contact',
+            text: `INSERT INTO 
+                    ${config.pgschema}.contacts
+                    (user_id, contact_id, contact_nickname)
+                    VALUES
+                    ($1, $2, $3);`,
+            values: [contact.user_id, contact.contact_id, contact.contact_nickname]
+        }
+
+        try {
+            let res = await pool.query(query);
+        }
+        catch (err) {
+            console.error(err.stack);
+            return false;
+        }
+        
+        return true;
+
+    }
 }());
