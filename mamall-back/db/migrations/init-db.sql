@@ -116,7 +116,7 @@ CREATE TABLE IF NOT EXISTS mamall.room_user (
   room_id BIGINT NOT NULL,
   user_id BIGINT NOT NULL,
   user_room_nickname VARCHAR(45) NULL,
-  user_role_id INT NOT NULL,
+  user_role_id INT NOT NULL DEFAULT 1,
   PRIMARY KEY (room_id, user_id),
   CONSTRAINT fk_room_user_rooms1
     FOREIGN KEY (room_id)

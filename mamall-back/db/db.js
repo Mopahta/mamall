@@ -1,6 +1,7 @@
 const pg = require('pg');
 const config = require('./config/config');
 const users = require('./user/db-users');
+const rooms = require('./room/db-rooms')
 
 (function() {
     let db;
@@ -19,7 +20,8 @@ const users = require('./user/db-users');
 
         });
 
-        users.setPool(pool)
+        users.setPool(pool);
+        rooms.setPool(pool);
 
         pool.on('connect', (client) => {
             console.log("New client connected to database.");
@@ -70,10 +72,38 @@ const users = require('./user/db-users');
 
     module.exports.updateUserIcon = users.updateUserIcon
 
-    module.exports.addUser = users.addUser
+    module.exports.createUser = users.createUser
 
     module.exports.addContact = users.addContact
 
     module.exports.setUserOnlineStatus = users.setUserOnlineStatus
 
+
+    // Room-related functions
+
+    module.exports.getAllRooms = rooms.getAllRooms
+
+    module.exports.getAllRoomsWithMode = rooms.getAllRoomsWithMode
+
+    module.exports.getRoomInfoById = rooms.getRoomInfoById
+
+    module.exports.getRoomUsers = rooms.getRoomUsers
+
+    module.exports.setRoomMode = rooms.setRoomMode
+
+    module.exports.getRoomModes = rooms.getRoomModes
+
+    module.exports.getUserRoles = rooms.getUserRoles
+
+    module.exports.getRoleValue = rooms.getRoleValue
+
+    module.exports.addUserToRoom = rooms.addUserToRoom
+
+    module.exports.deleteUserFromRoom = rooms.deleteUserFromRoom
+
+    module.exports.updateUserRoomInfo = rooms.updateUserRoomInfo
+
+    module.exports.createRoom = rooms.createRoom
+
+    module.exports.getUserRooms = rooms.getUserRooms
 }());

@@ -1,4 +1,3 @@
-const pg = require('pg');
 const config = require('../config/config');
 
 (function() {
@@ -42,7 +41,7 @@ const config = require('../config/config');
         let query =  {
             name: 'get-user-info-by-id',
             text: `SELECT user_id, username, email, date_registered, online_status_id, icon_file_id 
-                    FROM ${config.pgschema}.users WHERE id = $1`,
+                    FROM ${config.pgschema}.users WHERE user_id = $1`,
             values: [id]
         }
         
@@ -76,7 +75,7 @@ const config = require('../config/config');
                     INNER JOIN 
                     ${config.pgschema}.online_statuses AS statuses
                     ON users.online_status_id = statuses.online_status_id
-                    WHERE id = $1`,
+                    WHERE user_id = $1`,
             values: [id]
         }
         
@@ -107,7 +106,7 @@ const config = require('../config/config');
             name: 'set-user-online-status',
             text: `UPDATE ${config.pgschema}.users
                     SET (online_status_id) = ($1)
-                    WHERE id = $2;`,
+                    WHERE user_id = $2;`,
             values: [status_id, id]
         }
         
@@ -226,7 +225,7 @@ const config = require('../config/config');
         return privacySets;
     }
 
-    module.exports.addUser = async function(userInfo) {
+    module.exports.createUser = async function(userInfo) {
 
         if (!pool) {
             console.error("Pool not initialized in db-users.")
@@ -234,7 +233,7 @@ const config = require('../config/config');
         }
 
         let query =  {
-            name: 'add-user',
+            name: 'create-user',
             text: `INSERT INTO 
                     ${config.pgschema}.users 
                     (username, pass, email) 
