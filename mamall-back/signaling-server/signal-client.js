@@ -18,16 +18,23 @@ client.on('connect', function(connection) {
         if (message.type === 'utf8') {
             console.log("Received: '" + message.utf8Data + "'");
         }
+        else if (message.type === 'binary') {
+            console.log("Received: '" + message.binaryData + "'");
+        }
     });
     
-    function sendNumber() {
+    function heartBeat() {
         if (connection.connected) {
-            var number = Math.round(Math.random() * 0xFFFFFF);
-            connection.sendUTF(number.toString());
-            setTimeout(sendNumber, 1000);
+            let buf = Buffer.alloc(9)
+            buf.writeUInt8(0, 0);
+            buf.writeBigUInt64LE(2323n, 1);
+            // var number = Math.round(Math.random() * 0xFFFFFF);
+            connection.sendBytes(buf);
+            console.log(buf)
+            setTimeout(heartBeat, 5000);
         }
     }
-    sendNumber();
+    heartBeat();
 });
 
 client.connect('ws://localhost:8000/', 'mamall-signal-protocol');
