@@ -18,6 +18,10 @@ let wsServer = new WebSocketServer({
 });
 
 function originIsAllowed(origin) {
+    console.log(origin);
+    if (origin !== "http://localhost:3000" || origin !== "https://mamont.sytes.net") {
+        return false;
+    }
     // put logic here to detect whether the specified origin is allowed.
     return true;
 }
@@ -29,7 +33,7 @@ wsServer.on('request', function(request) {
         return;
     }
     
-    console.log('Protocol ', request);
+    // console.log('Protocol ', request);
     try {
         var connection = request.accept('mamall-signal-protocol', request.origin);
     }
@@ -37,7 +41,7 @@ wsServer.on('request', function(request) {
         console.log(err);
         return;
     }
-    console.log(connection);
+    // console.log(connection);
     console.log((new Date()) + ' Connection accepted.');
 });
 

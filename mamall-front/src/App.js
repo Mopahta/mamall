@@ -3,6 +3,7 @@ import './App.css';
 import Header from './common/Header';
 import { useState, useCallback, useEffect } from 'react';
 import useWebSocket, { ReadyState } from 'react-use-websocket';
+import { Buffer } from 'buffer';
 
 function App () {
     //Public API that will echo messages sent to it back to the client
@@ -28,8 +29,15 @@ function App () {
 
     const handleClickSendMessage = useCallback(() => { 
         sendMessage('Hello');
+            let buf = Buffer.alloc(9)
+            buf.writeUInt8(0, 0);
+            buf.writeBigUInt64LE(2323n, 1);
+            // connection.sendBytes(buf);
+            sendMessage(buf)
+            console.log(buf)
         setTimeout(handleClickSendMessage, 1000);
     }, []);
+    Buffer
 
     const connectionStatus = {
         [ReadyState.CONNECTING]: 'Connecting',
