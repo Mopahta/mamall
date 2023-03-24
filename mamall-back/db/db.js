@@ -62,18 +62,18 @@ const users = require('./user/db-users');
 
     module.exports.getUserOnlineStatus = users.getUserOnlineStatus
 
-    module.exports.setUserOnlineStatus = users.setUserOnlineStatus
-
     module.exports.getUserContacts = users.getUserContacts
 
     module.exports.getUserActiveIcon = users.getUserActiveIconPath
 
-    module.exports.updateUserIcon = users.updateUserIcon
-
     module.exports.getUserPrivacySets = users.getUserPrivacySets
+
+    module.exports.updateUserIcon = users.updateUserIcon
 
     module.exports.addUser = users.addUser
 
     module.exports.addContact = users.addContact
+
+    module.exports.setUserOnlineStatus = users.setUserOnlineStatus
 
 }());
