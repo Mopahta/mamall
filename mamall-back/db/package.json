@@ -1,0 +1,22 @@
+{
+  "name": "db",
+  "version": "0.1.0",
+  "description": "Database manager for Mamall Web App",
+  "main": "db.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Mopahta/mamall.git"
+  },
+  "author": "Mopahta",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Mopahta/mamall/issues"
+  },
+  "homepage": "https://github.com/Mopahta/mamall#readme",
+  "dependencies": {
+    "pg": "^8.10.0"
+  }
+}

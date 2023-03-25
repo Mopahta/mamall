@@ -1,0 +1,12 @@
+version: "3.9"
+services:
+    db:
+    
+    stun-server:
+        build: ./mamall-back/
+        user: 1000:1000
+        ports:
+            - "3478:3478/udp"
+            - "80:80"
+        volumes:
+            - ./mamall-back:/app/src/
