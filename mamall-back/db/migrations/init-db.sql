@@ -101,7 +101,7 @@ CREATE TABLE IF NOT EXISTS mamall.acc_states (
 DROP TABLE IF EXISTS mamall.user_room_roles ;
 
 CREATE TABLE IF NOT EXISTS mamall.user_room_roles (
-  role_id SERIAL;
+  role_id SERIAL,
   description VARCHAR(60) NULL,
   role_value INT NULL,
   PRIMARY KEY (role_id));
