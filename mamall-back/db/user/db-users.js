@@ -105,7 +105,7 @@ const config = require('../config/config');
         let query =  {
             name: 'set-user-online-status',
             text: `UPDATE ${config.pgschema}.users
-                    SET (online_status_id) = ($1)
+                    SET online_status_id = $1
                     WHERE user_id = $2;`,
             values: [status_id, id]
         }
@@ -236,7 +236,7 @@ const config = require('../config/config');
             name: 'create-user',
             text: `INSERT INTO 
                     ${config.pgschema}.users 
-                    (username, pass, email) 
+                    (username, password, email) 
                     VALUES 
                     ($1, $2, $3);`,
             values: [userInfo.username, userInfo.pass, 
@@ -265,7 +265,7 @@ const config = require('../config/config');
         let query =  {
             name: 'update-user-icon',
             text: `UPDATE ${config.pgschema}.users 
-                    SET (icon_file_id) = ($1)
+                    SET icon_file_id = $1
                     WHERE user_id = $2;`,
             values: [fileId, userId]
         }

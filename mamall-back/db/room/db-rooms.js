@@ -142,7 +142,7 @@ const config = require('../config/config');
         let query =  {
             name: 'set-room-mode',
             text: `UPDATE ${config.pgschema}.room_modes
-                    SET (room_mode_id) = ($1)
+                    SET room_mode_id = $1
                     WHERE room_id = $2;`,
             values: [mode_id, room_id]
         }
