@@ -16,7 +16,7 @@ const rooms = require('./room/db-rooms')
             password: config.pgpassword,
             port: config.pgport,
             max: 20,
-            idleTimeoutMillis: 35000
+            idleTimeoutMillis: 60000
 
         });
 
@@ -76,6 +76,10 @@ const rooms = require('./room/db-rooms')
 
     module.exports.addContact = users.addContact
 
+    // online_statuses:
+    //      1 - offline
+    //      2 - online
+    //      3 - away
     module.exports.setUserOnlineStatus = users.setUserOnlineStatus
 
 
@@ -103,7 +107,12 @@ const rooms = require('./room/db-rooms')
 
     module.exports.updateUserRoomInfo = rooms.updateUserRoomInfo
 
+    module.exports.updateUserRoomRole = rooms.updateUserRoomRole
+
+    module.exports.updateUserRoomNickname = rooms.updateUserRoomNickname
+
     module.exports.createRoom = rooms.createRoom
 
     module.exports.getUserRooms = rooms.getUserRooms
+
 }());
