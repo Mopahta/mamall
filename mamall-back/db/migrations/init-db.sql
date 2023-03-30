@@ -20,6 +20,7 @@ CREATE TABLE IF NOT EXISTS mamall.users (
   user_id BIGSERIAL,
   username VARCHAR(45) NOT NULL UNIQUE,
   password VARCHAR(65) NOT NULL,
+  secret_key VARCHAR(65) NOT NULL,
   email VARCHAR(45) NULL,
   date_registered TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   online_status_id INT NOT NULL DEFAULT 1,

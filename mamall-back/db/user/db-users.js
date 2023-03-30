@@ -60,6 +60,36 @@ const config = require('../config/config');
         return user;
     }
 
+    module.exports.getUserSecretKeyById = async function(id) {
+
+        if (!pool) {
+            console.error("Pool not initialized in db-users.")
+            return null
+        }
+
+        let user;
+        let query =  {
+            name: 'get-user-secret-key-by-id',
+            text: `SELECT user_id, secret_key 
+                    FROM ${config.pgschema}.users WHERE user_id = $1`,
+            values: [id]
+        }
+        
+        let res;
+        try {
+            res = await pool.query(query);
+
+            if (res.rows.length >= 1) {
+                user = res.rows[0];
+            }
+        }
+        catch (err) {
+            console.error(err.stack);
+        }
+
+        return user;
+    }
+
     module.exports.getUserOnlineStatus = async function(id) {
 
         if (!pool) {
@@ -236,11 +266,11 @@ const config = require('../config/config');
             name: 'create-user',
             text: `INSERT INTO 
                     ${config.pgschema}.users 
-                    (username, password, email) 
+                    (username, password, secret_key, email) 
                     VALUES 
-                    ($1, $2, $3);`,
+                    ($1, $2, $3, $4);`,
             values: [userInfo.username, userInfo.pass, 
-                userInfo.email, userInfo.icon_file_id]
+                userInfo.secret_key, userInfo.email]
         }
         
         try {
