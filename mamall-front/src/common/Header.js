@@ -1,3 +1,4 @@
+import '../logo.css';
 import 'semantic-ui-css/semantic.min.css';
 import { Link } from 'react-router-dom';
 
@@ -15,8 +16,11 @@ function Header() {
                 <Link className="item" to="/">
                     Home
                 </Link>
-                <Link className="right item" to="/login">
-                    Login
+                <Link className="item right" to="/login">
+                    Log In
+                </Link>
+                <Link className="item" to="/signup">
+                    Sign Up
                 </Link>
             </div>
         </header>

@@ -1,13 +1,17 @@
 import logo from './logo.svg';
-import './App.css';
+// import './App.css';
 import Header from './common/Header';
 import { useState, useCallback, useEffect } from 'react';
 import useWebSocket, { ReadyState } from 'react-use-websocket';
-import { Buffer } from 'buffer';
+import { Route, Routes } from 'react-router-dom';
+import config from './config/config';
+import Login from './routes/Login';
+import Signup from './routes/Signup';
 
 function App () {
-    //Public API that will echo messages sent to it back to the client
-    const [socketUrl, setSocketUrl] = useState('ws://localhost:8000/');
+
+    const [user, setUser] = useState({ auth:false, user_id:''})
+    const [socketUrl, setSocketUrl] = useState(config.wsHost);
     const [messageHistory, setMessageHistory] = useState([]);
 
     const { sendMessage, lastMessage, readyState } = useWebSocket(
@@ -18,26 +22,28 @@ function App () {
 
     useEffect(() => {
         if (lastMessage !== null) {
-        setMessageHistory((prev) => prev.concat(lastMessage));
+            setMessageHistory((prev) => prev.concat(lastMessage));
         }
+        heartBeatMessage();
     }, [lastMessage, setMessageHistory]);
 
     const handleClickChangeSocketUrl = useCallback(
-        () => setSocketUrl('wss://demos.kaazing.com/echo'),
+        () => setSocketUrl('wss://localhost:8000/'),
         []
     );
 
-    const handleClickSendMessage = useCallback(() => { 
-        sendMessage('Hello');
-            let buf = Buffer.alloc(9)
-            buf.writeUInt8(0, 0);
-            buf.writeBigUInt64LE(2323n, 1);
-            // connection.sendBytes(buf);
-            sendMessage(buf)
-            console.log(buf)
-        setTimeout(handleClickSendMessage, 1000);
+    const heartBeatMessage = useCallback(() => { 
+        if (!user.auth) {
+            return;
+        }
+
+        let message = {
+            type: '0',
+            time: Date.now()
+        }
+        sendMessage(JSON.stringify(message));
+        setTimeout(heartBeatMessage, 10000);
     }, []);
-    Buffer
 
     const connectionStatus = {
         [ReadyState.CONNECTING]: 'Connecting',
@@ -48,13 +54,17 @@ function App () {
     }[readyState];
 
     return (
-        <>
+        <div style={{padding: "50px"}}>    
             <Header/>
         {/* <button onClick={handleClickChangeSocketUrl}>
             Click Me to change Socket Url
         </button> */}
+        <Routes>
+            <Route index path="/"/>
+            <Route path="login" element={<Login user={user} setUser={setUser}/>} />
+            <Route path="signup" element={<Signup user={user} setUser={setUser}/>} />
+        </Routes>
         <button
-            onClick={handleClickSendMessage}
             disabled={readyState !== ReadyState.OPEN}
         >
             Click Me to send 'Hello'
@@ -66,7 +76,7 @@ function App () {
             <span key={idx}>{message ? message.data : null}</span>
             ))}
         </ul>
-        </>
+        </div>
     );
 };
 
