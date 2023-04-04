@@ -13,4 +13,7 @@ RUN npm install
 
 EXPOSE 3478
 
-CMD ["node", "stun-server.js"]
+CMD ["node", "stun-server/stun-server.js"]
+CMD ["node", "signal-server/signal-server.js"]
+CMD ["node", "rest-api/server.js"]
+CMD ["node", "media-server/media-server.js"]

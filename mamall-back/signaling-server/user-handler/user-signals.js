@@ -1,4 +1,4 @@
-const shared = require('./shared/shared');
+const shared = require('../shared/shared');
 
 (function() {
 
