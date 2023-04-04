@@ -269,7 +269,7 @@ const config = require('../config/config');
                     (username, password, secret_key, email) 
                     VALUES 
                     ($1, $2, $3, $4);`,
-            values: [userInfo.username, userInfo.pass, 
+            values: [userInfo.username, userInfo.password, 
                 userInfo.secret_key, userInfo.email]
         }
         
