@@ -1,3 +1,4 @@
+const config = require('./config/config')
 const WebSocketServer = require('websocket').server;
 
 const http = require('http');
@@ -8,8 +9,8 @@ var server = http.createServer(function(request, response) {
     response.end();
 });
 
-server.listen(8000, function() {
-    console.log((new Date()) + ' Server is listening on port 8000');
+server.listen(config.wsport, function() {
+    console.log((new Date()) + ` Server is listening on port ${config.wsport}`);
 });
 
 let wsServer = new WebSocketServer({
@@ -18,11 +19,10 @@ let wsServer = new WebSocketServer({
 });
 
 function originIsAllowed(origin) {
-    console.log(origin);
-    if (origin !== "http://localhost:3000" || origin !== "https://mamont.sytes.net") {
+    console.log("Origin:", origin);
+    if (origin !== "http://localhost:3000" && origin !== "https://mamont.sytes.net") {
         return false;
     }
-    // put logic here to detect whether the specified origin is allowed.
     return true;
 }
 
@@ -33,7 +33,6 @@ wsServer.on('request', function(request) {
         return;
     }
     
-    // console.log('Protocol ', request);
     try {
         var connection = request.accept('mamall-signal-protocol', request.origin);
     }
@@ -41,21 +40,25 @@ wsServer.on('request', function(request) {
         console.log(err);
         return;
     }
-    // console.log(connection);
+
     console.log((new Date()) + ' Connection accepted.');
 });
 
 wsServer.on('connect', function(connection) {
-    connection.on('message', function(message) {
+    connection.on('message', async function() {
         if (message.type === 'utf8') {
             console.log('Received Message: ' + message.utf8Data);
-            connection.sendUTF(message.utf8Data);
+            let res = await parseUTFMessage(message.utf8Data);
+
+            if (res) {
+                connection.sendUTF(JSON.stringify(res));
+            }
         }
         else if (message.type === 'binary') {
             console.log('Received Binary Message of ' + message.binaryData.length + ' bytes');
-            connection.sendBytes(message.binaryData);
         }
-    });
+    })
+
     connection.on('close', function(reasonCode, description) {
         console.log(new Date() + ' Peer ' + connection.remoteAddress + ' disconnected.');
     });
@@ -65,3 +68,24 @@ wsServer.on('connect', function(connection) {
 wsServer.on('upgradeError', function(error) {
     console.log(error)
 })
+
+async function parseUTFMessage(message) {
+    let parsed = JSON.parse(message);
+
+    let messageDispatchers = [
+        login, validate, logout, getConcerts, viewConcert, 
+        deleteEvent, getStatuses,
+    ];
+
+    console.log(`Parsed type: ${parsed.type}`);
+    let result;
+
+    if (parsed.type != undefined) {
+        result = await messageDispatchers[parsed.type](parsed);
+    }
+
+    if (parsed.type !== 3 && parsed.type !== 6) {
+        console.log("result", result);
+    }
+    return result;
+}
