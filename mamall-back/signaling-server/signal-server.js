@@ -1,7 +1,12 @@
-const config = require('./config/config')
+const config = require('./config/config');
 const WebSocketServer = require('websocket').server;
-
 const http = require('http');
+
+const db = require('../db/db');
+const shared = require('./shared/shared');
+const user_signal = require('./user-handler/user-signals');
+
+db.connect();
 
 var server = http.createServer(function(request, response) {
     console.log((new Date()) + ' Received request for ' + request.url);
@@ -33,8 +38,17 @@ wsServer.on('request', function(request) {
         return;
     }
     
+    let jwtToken = request.cookies.find(x => x.name === 'token');
+   
+    console.log('-----------------------');
     try {
         var connection = request.accept('mamall-signal-protocol', request.origin);
+
+        shared.addUser({
+            user_id: jwtToken,
+            connection: connection,
+            lastHeartBeat: Date.now()
+        })
     }
     catch (err) {
         console.log(err);
@@ -45,10 +59,18 @@ wsServer.on('request', function(request) {
 });
 
 wsServer.on('connect', function(connection) {
-    connection.on('message', async function() {
+    connection.on('message', async function(message) {
         if (message.type === 'utf8') {
-            console.log('Received Message: ' + message.utf8Data);
-            let res = await parseUTFMessage(message.utf8Data);
+
+            let connectedUser = shared.findUserByConnection(connection);
+
+            let res;
+            if (connectedUser.user_id) {
+                res = await dispatchMessage({
+                    user_id: connectedUser.user_id,
+                    message: message.utf8Data
+                });
+            }
 
             if (res) {
                 connection.sendUTF(JSON.stringify(res));
@@ -61,6 +83,7 @@ wsServer.on('connect', function(connection) {
 
     connection.on('close', function(reasonCode, description) {
         console.log(new Date() + ' Peer ' + connection.remoteAddress + ' disconnected.');
+        shared.deleteUserByConnection(connection);
     });
 
 })
@@ -69,12 +92,11 @@ wsServer.on('upgradeError', function(error) {
     console.log(error)
 })
 
-async function parseUTFMessage(message) {
+async function dispatchMessage(message) {
     let parsed = JSON.parse(message);
 
-    let messageDispatchers = [
-        login, validate, logout, getConcerts, viewConcert, 
-        deleteEvent, getStatuses,
+    let messageHandlers = [
+        heartbeatUpdate, user_signal.callUser, user_signal.callRoom
     ];
 
     console.log(`Parsed type: ${parsed.type}`);
@@ -84,8 +106,15 @@ async function parseUTFMessage(message) {
         result = await messageDispatchers[parsed.type](parsed);
     }
 
-    if (parsed.type !== 3 && parsed.type !== 6) {
-        console.log("result", result);
-    }
+    console.log("result", result);
+    
     return result;
+}
+
+function heartbeatUpdate(data) {
+    if (!data.user_id) {
+        return;
+    }
+
+    shared.updateBeatTime(data);
 }
