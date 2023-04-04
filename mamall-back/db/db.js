@@ -1,13 +1,16 @@
 const pg = require('pg');
 const config = require('./config/config');
 const users = require('./user/db-users');
-const rooms = require('./room/db-rooms')
+const rooms = require('./room/db-rooms');
 
 (function() {
     let db;
-    let pool;
+    let pool = null;
 
     module.exports.connect = function() {
+        if (pool) {
+            return;
+        }
         pool = new pg.Pool({
 
             host: config.pghost,
@@ -75,6 +78,9 @@ const rooms = require('./room/db-rooms')
     module.exports.createUser = users.createUser
 
     module.exports.addContact = users.addContact
+
+    // not implemented
+    module.exports.updateUserRole = users.updateUserRole 
 
     // online_statuses:
     //      1 - offline

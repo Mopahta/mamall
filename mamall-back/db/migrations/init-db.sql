@@ -12,6 +12,18 @@ CREATE TABLE IF NOT EXISTS mamall.online_statuses (
 
 
 -- -----------------------------------------------------
+-- Table mamall.user_roles
+-- -----------------------------------------------------
+DROP TABLE IF EXISTS mamall.user_roles ;
+
+CREATE TABLE IF NOT EXISTS mamall.user_roles (
+  role_id SERIAL,
+  description VARCHAR(60) NULL,
+  role_value INT NULL,
+  PRIMARY KEY (role_id));
+
+
+-- -----------------------------------------------------
 -- Table mamall.users
 -- -----------------------------------------------------
 DROP TABLE IF EXISTS mamall.users ;
@@ -25,12 +37,18 @@ CREATE TABLE IF NOT EXISTS mamall.users (
   date_registered TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   online_status_id INT NOT NULL DEFAULT 1,
   icon_file_id INT NULL,
+  user_role_id INT NOT NULL DEFAULT 1,
   PRIMARY KEY (user_id),
   CONSTRAINT fk_users_table11
     FOREIGN KEY (online_status_id)
     REFERENCES mamall.online_statuses (online_status_id)
     ON DELETE RESTRICT
-    ON UPDATE CASCADE);
+    ON UPDATE CASCADE,
+  CONSTRAINT fk_users_user_roles
+    FOREIGN KEY (user_role_id)
+    REFERENCES mamall.user_roles (role_id)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION);
 
 
 -- -----------------------------------------------------
@@ -97,18 +115,6 @@ CREATE TABLE IF NOT EXISTS mamall.acc_states (
 
 
 -- -----------------------------------------------------
--- Table mamall.user_room_roles
--- -----------------------------------------------------
-DROP TABLE IF EXISTS mamall.user_room_roles ;
-
-CREATE TABLE IF NOT EXISTS mamall.user_room_roles (
-  role_id SERIAL,
-  description VARCHAR(60) NULL,
-  role_value INT NULL,
-  PRIMARY KEY (role_id));
-
-
--- -----------------------------------------------------
 -- Table mamall.room_user
 -- -----------------------------------------------------
 DROP TABLE IF EXISTS mamall.room_user ;
@@ -129,9 +135,9 @@ CREATE TABLE IF NOT EXISTS mamall.room_user (
     REFERENCES mamall.users (user_id)
     ON DELETE RESTRICT
     ON UPDATE CASCADE,
-  CONSTRAINT fk_room_user_user_room_roles1
+  CONSTRAINT fk_room_user_user_roles1
     FOREIGN KEY (user_role_id)
-    REFERENCES mamall.user_room_roles (role_id)
+    REFERENCES mamall.user_roles (role_id)
     ON DELETE NO ACTION
     ON UPDATE NO ACTION);
 

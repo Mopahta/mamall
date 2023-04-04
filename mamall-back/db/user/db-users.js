@@ -15,7 +15,7 @@ const config = require('../config/config');
         }
 
         let users = [];
-        let query = `SELECT user_id, username, email, online_status_id, icon_file_id 
+        let query = `SELECT user_id, username, email, online_status_id, icon_file_id, user_role_id
                     FROM ${config.pgschema}.users`;
         
         let res;
@@ -40,7 +40,7 @@ const config = require('../config/config');
         let user;
         let query =  {
             name: 'get-user-info-by-id',
-            text: `SELECT user_id, username, email, date_registered, online_status_id, icon_file_id 
+            text: `SELECT user_id, username, email, date_registered, online_status_id, icon_file_id, user_role_id
                     FROM ${config.pgschema}.users WHERE user_id = $1`,
             values: [id]
         }
@@ -343,6 +343,10 @@ const config = require('../config/config');
         }
         
         return true;
+
+    }
+
+    module.exports.updateUserRole = async function(userInfo) {
 
     }
 }());
