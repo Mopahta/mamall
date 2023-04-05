@@ -189,6 +189,7 @@ CREATE TABLE IF NOT EXISTS mamall.files (
   file_id  BIGSERIAL,
   file_url VARCHAR(256) NULL,
   file_path VARCHAR(256) NULL,
+  time_uploaded TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (file_id));
 
 
