@@ -1,9 +1,6 @@
 const express = require('express');
 const cors = require('cors');
 const multer = require('multer');
-const crypto = require('crypto');
-const glob = require('bcrypt');
-const fs = require('node:fs/promises');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcrypt');
 const cookieParser = require('cookie-parser');
@@ -33,8 +30,6 @@ const upload = multer({
 
 app.use(cors({origin: 'http://localhost:3000', credentials: true}));
 app.use(cookieParser());
-
-module.exports.db = db;
 
 app.post("/login", upload.none(), async function(req, res) {
     console.log("post /login")

@@ -7,7 +7,7 @@ module.exports = {
     pool: null,
 
     connect: function() {
-        if (pool) {
+        if (this.pool) {
             return;
         }
         this.pool = new pg.Pool({
@@ -37,7 +37,7 @@ module.exports = {
             console.log("Client was removed from this.pool.");
         });
 
-        console.log('Successfully created database this.this.pool.')
+        console.log('Successfully created database this.pool.')
         
         return true;
     },
