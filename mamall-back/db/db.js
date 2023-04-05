@@ -65,6 +65,8 @@ const rooms = require('./room/db-rooms');
 
     module.exports.getUserInfoById = users.getUserInfoById 
 
+    module.exports.getUserInfoByUsername = users.getUserInfoByUsername
+
     module.exports.getUserOnlineStatus = users.getUserOnlineStatus
 
     module.exports.getUserContacts = users.getUserContacts
@@ -78,6 +80,10 @@ const rooms = require('./room/db-rooms');
     module.exports.createUser = users.createUser
 
     module.exports.addContact = users.addContact
+
+    module.exports.updateUserRefreshToken = users.updateUserRefreshToken
+
+    module.exports.getUserRefreshTokenById = users.getUserRefreshTokenById
 
     // not implemented
     module.exports.updateUserRole = users.updateUserRole 

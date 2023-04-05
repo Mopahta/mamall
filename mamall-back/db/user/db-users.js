@@ -60,7 +60,7 @@ const config = require('../config/config');
         return user;
     }
 
-    module.exports.getUserSecretKeyById = async function(id) {
+    module.exports.getUserInfoByUsername = async function(username) {
 
         if (!pool) {
             console.error("Pool not initialized in db-users.")
@@ -69,8 +69,38 @@ const config = require('../config/config');
 
         let user;
         let query =  {
-            name: 'get-user-secret-key-by-id',
-            text: `SELECT user_id, secret_key 
+            name: 'get-user-info-by-username',
+            text: `SELECT user_id, username, email, password, date_registered, icon_file_id, user_role_id
+                    FROM ${config.pgschema}.users WHERE username = $1`,
+            values: [username]
+        }
+        
+        let res;
+        try {
+            res = await pool.query(query);
+
+            if (res.rows.length >= 1) {
+                user = res.rows[0];
+            }
+        }
+        catch (err) {
+            console.error(err.stack);
+        }
+
+        return user;
+    }
+
+    module.exports.getUserRefreshTokenById = async function(id) {
+
+        if (!pool) {
+            console.error("Pool not initialized in db-users.")
+            return null
+        }
+
+        let user;
+        let query =  {
+            name: 'get-user-refresh-token-by-id',
+            text: `SELECT user_id, refresh_token 
                     FROM ${config.pgschema}.users WHERE user_id = $1`,
             values: [id]
         }
@@ -332,6 +362,33 @@ const config = require('../config/config');
                     VALUES
                     ($1, $2, $3);`,
             values: [contact.user_id, contact.contact_id, contact.contact_nickname]
+        }
+
+        try {
+            let res = await pool.query(query);
+        }
+        catch (err) {
+            console.error(err.stack);
+            return false;
+        }
+        
+        return true;
+
+    }
+
+    module.exports.updateUserRefreshToken = async function(userId, refresh_token) {
+
+        if (!pool) {
+            console.error("Pool not initialized in db-users.")
+            return null
+        }
+
+        let query =  {
+            name: 'update-user-refresh-token',
+            text: `UPDATE ${config.pgschema}.users 
+                    SET refresh_token = $1
+                    WHERE user_id = $2;`,
+            values: [refresh_token, userId]
         }
 
         try {
