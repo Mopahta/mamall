@@ -2,7 +2,22 @@ import '../logo.css';
 import 'semantic-ui-css/semantic.min.css';
 import { Link } from 'react-router-dom';
 
-function Header() {
+function Header({user, setUser}) {
+
+    const handleLogout = async function (e) {
+
+        await fetch("http://localhost:8080/logout", { 
+            method: 'GET',
+            credentials: 'include'
+        })
+        .then(res => {
+            setUser({auth: false, user_id: 0, name: ''})
+        })
+        .catch(err => {
+            console.log(err)
+        })
+
+    }
 
     return (
         <>
@@ -16,12 +31,27 @@ function Header() {
                 <Link className="item" to="/">
                     Home
                 </Link>
+                {user.auth ?
+                <>
+                <Link className='item right' to="/me">
+                    {user.name}
+                </Link>
+                <Link className="item" >
+                    <div className="ui" type='submit' onClick={handleLogout}>
+                        Log Out
+                    </div>
+                </Link>
+                </>
+                :
+                <>
                 <Link className="item right" to="/login">
                     Log In
                 </Link>
                 <Link className="item" to="/signup">
                     Sign Up
                 </Link>
+                </>
+                }
             </div>
         </header>
         </>

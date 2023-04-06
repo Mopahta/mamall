@@ -36,8 +36,7 @@ function Login({user, setUser}) {
         })
         .then(res => res.json())
         .then(data => {
-            localStorage.setItem('jwtToken', data.token);
-            setUser({auth: true, name: data.username})
+            setUser({auth: true, user_id: data.user_id, name: data.username})
         })
         .catch(err => {
             if (err.response) {
