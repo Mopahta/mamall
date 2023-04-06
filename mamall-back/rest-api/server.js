@@ -47,21 +47,27 @@ app.post("/login", upload.none(), async function(req, res) {
 
     if (username && password) {
         if (validateUsername(username) && validatePassword(password)) {
-            console.log("debug");
-            let userInfo = db.getUserInfoByUsername(username);
+            let userInfo = await db.getUserInfoByUsername(username);
+
+            if (!userInfo) {
+                res.status(401).end();
+            }
+            console.log(userInfo.password);
             let match = await bcrypt.compare(password, userInfo.password);
 
             console.log(match)
             if (match) {
-                token = jwt.sign({user_id: user_id}, config.jwtSecret, {expiresIn: '2h'});
-                refresh_token = jwt.sign({user_id: user_id}, config.jwtSecret, {expiresIn: '1d'});
+                token = jwt.sign({user_id: userInfo.user_id, username: username}, config.jwtSecret, {expiresIn: '2h'});
+                refresh_token = jwt.sign({user_id: userInfo.user_id}, config.jwtSecret, {expiresIn: '1d'});
+
                 console.log("token ", token);
                 console.log("refresh token", refresh_token);
-                await db.updateUserRefreshToken(user_id, refresh_token);
+
+                db.updateUserRefreshToken(userInfo.user_id, refresh_token);
             }
 
             if (token) {
-                res.cookie('token', token, {maxAge: 2 * 60 * 60 * 1000, httpOnly: true});
+                res.cookie('token', token, {maxAge: 2 * 60 * 60 * 1000, httpOnly: true, sameSite: 'none'});
                 res.cookie('refresh_token', refresh_token, {maxAge: 24 * 60 * 60 * 1000, httpOnly: true, path: "/refresh"});
                 res.status(200).json({username: username, user_id: userInfo.user_id});
             }
@@ -79,12 +85,9 @@ app.post("/signup", upload.none(), async function(req, res) {
     let password = req.body['password']
     let email = req.body['email']
 
-    console.log(req.body['username'])
-    console.log(req.body['password'])
-
     if (username && password) {
         if (validateUsername(username) && validatePassword(password)) {
-            bcrypt.hash(myPlaintextPassword, saltRounds, function(err, hash) {
+            bcrypt.hash(password, saltRounds, function(err, hash) {
                 if (err) {
                     console.error(err);
                     return;
@@ -146,14 +149,14 @@ async function refreshToken(req, res) {
 
                 if (refresh_token === userRefrToken) {
 
-                    let token = jwt.sign({user_id: user_id}, config.jwtSecret, {expiresIn: '2h'});
+                    let token = jwt.sign({user_id: user_id, username: username}, config.jwtSecret, {expiresIn: '2h'});
                     refresh_token = jwt.sign({user_id: user_id}, config.jwtSecret, {expiresIn: '1d'});
                     console.log("token ", token);
                     console.log("refresh token", refresh_token);
 
                     await db.updateUserRefreshToken(user_id, refresh_token);
 
-                    res.cookie('token', token, {maxAge: 2 * 60 * 60 * 1000, httpOnly: true});
+                    res.cookie('token', token, {maxAge: 2 * 60 * 60 * 1000, httpOnly: true, sameSite: 'none'});
                     res.cookie('refresh_token', refresh_token, {maxAge: 24 * 60 * 60 * 1000, httpOnly: true, path: "/refresh"});
                 }
                 else {
@@ -173,6 +176,8 @@ async function refreshToken(req, res) {
     res.status(200).json({user_id: user_id});
 }
 
+app.post("/validate", verifyToken, getTokenInfo);
+
 function getTokenInfo(req, res) {
     // const header = req.headers['authorization']
 
@@ -180,13 +185,14 @@ function getTokenInfo(req, res) {
 
     const token = req.cookies.token;
 
-    res.cookie('token', token, {maxAge: 2 * 60 * 60 * 1000, httpOnly: true})
+    // res.cookie('token', token, {maxAge: 2 * 60 * 60 * 1000, httpOnly: true})
+    res.cookie = req.cookie
 
     res.status(200).json({username: req.user.username, user_id: req.user.user_id})
 }
 
 function verifyToken(req, res, next) {
-    req.user = {user_id: null, verified: false}
+    req.user = {user_id: null, username: null}
 
     const token = req.cookies.token;
     if (!token) {
@@ -196,12 +202,11 @@ function verifyToken(req, res, next) {
     let verified = false 
 
     if (token) {
-        const token = header.split(' ')[1]
 
         if (!(token in tokenBlackList)) {
             jwt.verify(token, config.jwtSecret, function (err,data) {
                 if (!(err && !data)) {
-                    req.user = {user_id: user_id, verified:true}
+                    req.user = {user_id: data.user_id, username: data.username}
                     verified = true
                     console.log("token did pass")
                     next()
