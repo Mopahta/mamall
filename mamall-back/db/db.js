@@ -34,10 +34,10 @@ module.exports = {
         });
 
         this.pool.on('remove', (client) => {
-            console.log("Client was removed from this.pool.");
+            console.log("Client was removed from pool.");
         });
 
-        console.log('Successfully created database this.pool.')
+        console.log('Successfully created database pool.')
         
         return true;
     },

@@ -296,11 +296,11 @@ const config = require('../config/config');
             name: 'create-user',
             text: `INSERT INTO 
                     ${config.pgschema}.users 
-                    (username, password, secret_key, email) 
+                    (username, password, email) 
                     VALUES 
-                    ($1, $2, $3, $4);`,
+                    ($1, $2, $3);`,
             values: [userInfo.username, userInfo.password, 
-                userInfo.secret_key, userInfo.email]
+                userInfo.email]
         }
         
         try {
