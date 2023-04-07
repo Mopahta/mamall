@@ -16,7 +16,7 @@ module.exports = {
     },
     updateBeatTime: function (data) {
         let userIndex = this.connectedUsers.findIndex(x => x.user_id === data.user_id);
-        this.connectedUsers[userIndex].heartbeatUpdate = data.message.time;
+        this.connectedUsers[userIndex].lastHeartBeat = data.payload.time;
     }
 
 };

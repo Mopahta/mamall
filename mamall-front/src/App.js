@@ -1,31 +1,97 @@
 import logo from './logo.svg';
 // import './App.css';
 import Header from './common/Header';
-import { useState, useCallback, useEffect } from 'react';
-import useWebSocket, { ReadyState } from 'react-use-websocket';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import { Route, Routes } from 'react-router-dom';
 import config from './config/config';
+import Index from './routes/Index';
 import Login from './routes/Login';
 import Signup from './routes/Signup';
 
 function App () {
 
-    const [user, setUser] = useState({ auth:false, user_id:''})
+    const [user, setUser] = useState({ auth: false, user_id: 0, name: ''});
     const [socketUrl, setSocketUrl] = useState(config.wsHost);
     const [messageHistory, setMessageHistory] = useState([]);
 
-    const { sendMessage, lastMessage, readyState } = useWebSocket(
-        socketUrl, {
-            onOpen: () => console.log('opened'),
-            protocols: 'mamall-signal-protocol'
-    });
+    const [socketStatus, setSocketStatus] = useState(WebSocket.CLOSED);
+
+    const [socket, setSocket] = useState(null);
 
     useEffect(() => {
-        if (lastMessage !== null) {
-            setMessageHistory((prev) => prev.concat(lastMessage));
+        if (!user.auth) {
+            return;
         }
+        if (socketStatus === WebSocket.CLOSED) {
+            connectSocket();
+            setSocketStatus(WebSocket.OPEN);
+        }
+    }, [socketStatus, user.auth])
+
+    function handleMessage(message) {
+
+        console.log(message.data);
+
+    }
+
+    function connectSocket() {
+        let newSocket = new WebSocket(socketUrl, 'mamall-signal-protocol');
+        
+        setSocket(newSocket);
+
+        newSocket.addEventListener('open', function (m) {
+            console.log("WebSocket opened connection.")
+        });
+
+        newSocket.onmessage = handleMessage;
+        newSocket.onclose = function (e) {
+            setTimeout(() => {
+                setSocketStatus(WebSocket.CLOSED);
+            }, 2000);
+        };
+
+        newSocket.onerror = function (err) {
+            socket.close();
+        };
+
+    }
+
+    useEffect(() => {
+        async function checkToken() {
+            console.log("validating....")
+            fetch("http://localhost:8080/validate", { 
+                method: 'POST',
+                credentials: 'include'
+            })
+            .then(res => {
+                if (res.status != 403) { 
+                    return res.json();
+                }
+                else {
+                    console.log("not valid token");
+                }
+            })
+            .then(data => {
+                if (data && data.user_id && data.username) {
+                    setUser({auth: true, user_id: data.user_id, name: data.username});
+                    console.log(user);
+                }
+            })
+            .catch(err => {
+                if (err.response) {
+                    if (err.response.status === 403) {
+                        console.log("not valid token")
+                    }
+                    else {
+                        console.log("Please, try again.")
+                    }
+                }
+                console.log(err)
+            })
+        }
+        checkToken()
         heartBeatMessage();
-    }, [lastMessage, setMessageHistory]);
+    }, []);
 
     const handleClickChangeSocketUrl = useCallback(
         () => setSocketUrl('wss://localhost:8000/'),
@@ -33,44 +99,28 @@ function App () {
     );
 
     const heartBeatMessage = useCallback(() => { 
-        if (!user.auth) {
+        if (!user.auth || socketStatus !== WebSocket.OPEN) {
             return;
         }
 
         let message = {
-            type: '0',
+            type: 0,
             time: Date.now()
         }
-        sendMessage(JSON.stringify(message));
+        socket.send(JSON.stringify(message));
+
         setTimeout(heartBeatMessage, 10000);
     }, []);
 
-    const connectionStatus = {
-        [ReadyState.CONNECTING]: 'Connecting',
-        [ReadyState.OPEN]: 'Open',
-        [ReadyState.CLOSING]: 'Closing',
-        [ReadyState.CLOSED]: 'Closed',
-        [ReadyState.UNINSTANTIATED]: 'Uninstantiated',
-    }[readyState];
-
     return (
         <div style={{padding: "50px"}}>    
-            <Header/>
-        {/* <button onClick={handleClickChangeSocketUrl}>
-            Click Me to change Socket Url
-        </button> */}
+            <Header user={user} setUser={setUser}/>
         <Routes>
-            <Route index path="/"/>
+            <Route index path="/" element={<Index user={user} setUser={setUser}/>} />
             <Route path="login" element={<Login user={user} setUser={setUser}/>} />
             <Route path="signup" element={<Signup user={user} setUser={setUser}/>} />
         </Routes>
-        <button
-            disabled={readyState !== ReadyState.OPEN}
-        >
-            Click Me to send 'Hello'
-        </button>
-        <span>The WebSocket is currently {connectionStatus}</span>
-        {lastMessage ? <span>Last message: {lastMessage.data}</span> : null}
+        <span>The WebSocket is currently {socketStatus}</span>
         <ul>
             {messageHistory.map((message, idx) => (
             <span key={idx}>{message ? message.data : null}</span>

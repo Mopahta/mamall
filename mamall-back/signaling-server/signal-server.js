@@ -32,6 +32,7 @@ function originIsAllowed(origin) {
 }
 
 wsServer.on('request', function(request) {
+    console.log('-----------------------');
     if (!originIsAllowed(request.origin)) {
         request.reject();
         console.log((new Date()) + ' Connection from origin ' + request.origin + ' rejected.');
@@ -39,8 +40,10 @@ wsServer.on('request', function(request) {
     }
     
     let jwtToken = request.cookies.find(x => x.name === 'token');
+    console.log(request.cookies);
+
+    // TODO: jwt token check
    
-    console.log('-----------------------');
     try {
         var connection = request.accept('mamall-signal-protocol', request.origin);
 
@@ -64,11 +67,15 @@ wsServer.on('connect', function(connection) {
 
             let connectedUser = shared.findUserByConnection(connection);
 
+            if (!connectedUser) {
+                return;
+            }
+
             let res;
             if (connectedUser.user_id) {
                 res = await dispatchMessage({
                     user_id: connectedUser.user_id,
-                    message: message.utf8Data
+                    payload: JSON.parse(message.utf8Data)
                 });
             }
 
@@ -93,17 +100,16 @@ wsServer.on('upgradeError', function(error) {
 })
 
 async function dispatchMessage(message) {
-    let parsed = JSON.parse(message);
 
     let messageHandlers = [
         heartbeatUpdate, user_signal.callUser, user_signal.callRoom
     ];
 
-    console.log(`Parsed type: ${parsed.type}`);
+    console.log(`Parsed type: ${message.payload.type}`);
     let result;
 
-    if (parsed.type != undefined) {
-        result = await messageDispatchers[parsed.type](parsed);
+    if (message.payload.type != undefined) {
+        result = await messageHandlers[message.payload.type](message);
     }
 
     console.log("result", result);
@@ -117,4 +123,13 @@ function heartbeatUpdate(data) {
     }
 
     shared.updateBeatTime(data);
+    console.log(shared.connectedUsers.map((item) => {item.connection = null; return item} ));
+
+
+    let res = {
+        type: 0,
+        status: 0
+    }
+
+    return res;
 }
