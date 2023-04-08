@@ -23,6 +23,7 @@ function Header({user, setUser}) {
         <>
         <header>
             <div className="ui inverted menu">
+                <div className="ui container">
                 <div className="item">
                     <header className="app-header">
                         <img src={process.env.PUBLIC_URL + '/logo512.png'} className="app-logo" alt="logo" />
@@ -52,6 +53,7 @@ function Header({user, setUser}) {
                 </Link>
                 </>
                 }
+                </div>
             </div>
         </header>
         </>
