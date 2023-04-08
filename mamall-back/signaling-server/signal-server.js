@@ -93,6 +93,7 @@ wsServer.on('connect', function(connection) {
         shared.deleteUserByConnection(connection);
     });
 
+    checkConnectionAvailability();
 })
 
 wsServer.on('upgradeError', function(error) {
@@ -132,4 +133,9 @@ function heartbeatUpdate(data) {
     }
 
     return res;
+}
+
+function checkConnectionAvailability() {
+    shared.deleteOldConnections();
+    setTimeout(checkConnectionAvailability, 10 * 60 * 1000);
 }

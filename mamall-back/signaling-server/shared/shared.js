@@ -17,6 +17,10 @@ module.exports = {
     updateBeatTime: function (data) {
         let userIndex = this.connectedUsers.findIndex(x => x.user_id === data.user_id);
         this.connectedUsers[userIndex].lastHeartBeat = data.payload.time;
+    },
+    deleteOldConnections: function () {
+        let dateNow = Date.now();
+        this.connectedUsers = this.connectedUsers.filter(user => (dateNow - user.lastHeartBeat) > 2 * 60 * 1000);
     }
 
 };
