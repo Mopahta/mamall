@@ -4,6 +4,7 @@ import Header from './common/Header';
 import { useState, useCallback, useEffect, useRef } from 'react';
 import { Route, Routes } from 'react-router-dom';
 import config from './config/config';
+import Error from './common/Error';
 import Index from './routes/Index';
 import Login from './routes/Login';
 import Signup from './routes/Signup';
@@ -57,24 +58,26 @@ function App () {
     }
 
     useEffect(() => {
-        async function checkToken() {
+        async function checkToken(path) {
             console.log("validating....")
-            fetch("http://localhost:8080/validate", { 
+            fetch(path, { 
                 method: 'POST',
                 credentials: 'include'
             })
             .then(res => {
-                if (res.status != 403) { 
-                    return res.json();
+                if (res.status === 403) { 
+                    console.log("not valid token");
+                }
+                else if (res.status === 401) {
+                    checkToken(config.host + config.refreshPath);
                 }
                 else {
-                    console.log("not valid token");
+                    return res.json();
                 }
             })
             .then(data => {
                 if (data && data.user_id && data.username) {
                     setUser({auth: true, user_id: data.user_id, name: data.username});
-                    console.log(user);
                 }
             })
             .catch(err => {
@@ -89,7 +92,7 @@ function App () {
                 console.log(err)
             })
         }
-        checkToken()
+        checkToken(config.host + config.validatePath);
         heartBeatMessage();
     }, []);
 
@@ -119,6 +122,7 @@ function App () {
             <Route index path="/" element={<Index user={user} setUser={setUser}/>} />
             <Route path="login" element={<Login user={user} setUser={setUser}/>} />
             <Route path="signup" element={<Signup user={user} setUser={setUser}/>} />
+            <Route path="*" element={<Error message={"Page not found"} />} />
         </Routes>
         <span>The WebSocket is currently {socketStatus}</span>
         <ul>

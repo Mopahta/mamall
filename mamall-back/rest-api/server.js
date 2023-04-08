@@ -10,9 +10,6 @@ const config = require('./config/config');
 
 const saltRounds = 8;
 
-const user = "user";
-const pass = "pass";
-const passHash = "$2a$10$DscTzMhq6OBTSFDSRDg2quX.hij2x9XdpD7EBcoPmeptMXRXTwYGq";
 let tokenBlackList = [];
 
 app = express();
@@ -30,6 +27,13 @@ const upload = multer({
 
 app.use(cors({origin: 'http://localhost:3000', credentials: true}));
 app.use(cookieParser());
+
+app.get("/contacts", verifyToken, async function (req, res) {
+    console.log("contacts");
+    let contacts = await db.getUserContacts(req.user.user_id);
+
+    res.status(200).json(contacts);
+});
 
 app.post("/login", upload.none(), async function(req, res) {
     console.log("post /login")
@@ -67,7 +71,7 @@ app.post("/login", upload.none(), async function(req, res) {
             }
 
             if (token) {
-                res.cookie('token', token, {maxAge: 2 * 60 * 60 * 1000, httpOnly: true, sameSite: 'none'});
+                res.cookie('token', token, {maxAge: 24 * 60 * 60 * 1000, httpOnly: true, sameSite: 'none'});
                 res.cookie('refresh_token', refresh_token, {maxAge: 24 * 60 * 60 * 1000, httpOnly: true, path: "/refresh"});
                 res.status(200).json({username: username, user_id: userInfo.user_id});
             }
@@ -138,25 +142,31 @@ app.post("/refresh", refreshToken);
 
 async function refreshToken(req, res) {
 
-    let user_id = req.query.id;
-    let refresh_token = req.cookie.refresh_token;   
+    if (req.cookies.refresh_token === undefined) {
+        console.log("no refresh token");
+        return res.status(403).end();
+    }
+
+    let refresh_token = req.cookies.refresh_token;   
+
+    let userInfo = null;
 
     if (refresh_token) {
         try {
             let decoded = jwt.verify(refresh_token, config.jwtSecret);
-            if (decoded.user_id === user_id) {
-                let userRefrToken = await db.getUserRefreshTokenById(user_id);
+            if (decoded.user_id) {
+                userInfo = await db.getUserRefreshTokenById(decoded.user_id);
 
-                if (refresh_token === userRefrToken) {
+                if (refresh_token === userInfo.refresh_token) {
 
-                    let token = jwt.sign({user_id: user_id, username: username}, config.jwtSecret, {expiresIn: '2h'});
-                    refresh_token = jwt.sign({user_id: user_id}, config.jwtSecret, {expiresIn: '1d'});
+                    let token = jwt.sign({user_id: decoded.user_id, username: userInfo.username}, config.jwtSecret, {expiresIn: '2h'});
+                    refresh_token = jwt.sign({user_id: decoded.user_id}, config.jwtSecret, {expiresIn: '1d'});
                     console.log("token ", token);
                     console.log("refresh token", refresh_token);
 
-                    await db.updateUserRefreshToken(user_id, refresh_token);
+                    await db.updateUserRefreshToken(decoded.user_id, refresh_token);
 
-                    res.cookie('token', token, {maxAge: 2 * 60 * 60 * 1000, httpOnly: true, sameSite: 'none'});
+                    res.cookie('token', token, {maxAge: 24 * 60 * 60 * 1000, httpOnly: true, sameSite: 'none'});
                     res.cookie('refresh_token', refresh_token, {maxAge: 24 * 60 * 60 * 1000, httpOnly: true, path: "/refresh"});
                 }
                 else {
@@ -169,11 +179,11 @@ async function refreshToken(req, res) {
         }
         catch (err) {
             console.error(err);
-            res.status(401).end();
+            res.status(403).end();
         }
     }
 
-    res.status(200).json({user_id: user_id});
+    res.status(200).json({user_id: userInfo.user_id, username: userInfo.username});
 }
 
 app.post("/validate", verifyToken, getTokenInfo);
@@ -217,7 +227,7 @@ function verifyToken(req, res, next) {
 
     if (!verified) {
         console.log("token didn't pass")
-        return res.status(403).end()
+        return res.status(401).end()
     }
 }
 

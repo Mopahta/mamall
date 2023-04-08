@@ -100,7 +100,7 @@ const config = require('../config/config');
         let user;
         let query =  {
             name: 'get-user-refresh-token-by-id',
-            text: `SELECT user_id, refresh_token 
+            text: `SELECT user_id, username, refresh_token 
                     FROM ${config.pgschema}.users WHERE user_id = $1`,
             values: [id]
         }
