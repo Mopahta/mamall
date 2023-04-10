@@ -52,30 +52,6 @@ CREATE TABLE IF NOT EXISTS mamall.users (
 
 
 -- -----------------------------------------------------
--- Table mamall.contacts
--- -----------------------------------------------------
-DROP TABLE IF EXISTS mamall.contacts ;
-
-CREATE TABLE IF NOT EXISTS mamall.contacts (
-  user_id BIGINT NOT NULL,
-  contact_id BIGINT NOT NULL,
-  contact_nickname VARCHAR(45) NULL,
-  contact_since TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP,
-  CHECK (user_id <> contact_id),
-  PRIMARY KEY (user_id, contact_id),
-  CONSTRAINT fk_contacts_users
-    FOREIGN KEY (user_id)
-    REFERENCES mamall.users (user_id)
-    ON DELETE RESTRICT
-    ON UPDATE CASCADE,
-  CONSTRAINT fk_contacts_users1
-    FOREIGN KEY (contact_id)
-    REFERENCES mamall.users (user_id)
-    ON DELETE CASCADE
-    ON UPDATE CASCADE);
-
-
--- -----------------------------------------------------
 -- Table mamall.room_modes
 -- -----------------------------------------------------
 DROP TABLE IF EXISTS mamall.room_modes ;
@@ -100,6 +76,36 @@ CREATE TABLE IF NOT EXISTS mamall.rooms (
     FOREIGN KEY (room_mode_id)
     REFERENCES mamall.room_modes (mode_id)
     ON DELETE RESTRICT
+    ON UPDATE CASCADE);
+
+
+-- -----------------------------------------------------
+-- Table mamall.contacts
+-- -----------------------------------------------------
+DROP TABLE IF EXISTS mamall.contacts ;
+
+CREATE TABLE IF NOT EXISTS mamall.contacts (
+  user_id BIGINT NOT NULL,
+  contact_id BIGINT NOT NULL,
+  room_id BIGINT NULL,
+  contact_nickname VARCHAR(45) NULL,
+  contact_since TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP,
+  CHECK (user_id <> contact_id),
+  PRIMARY KEY (user_id, contact_id),
+  CONSTRAINT fk_contacts_rooms1
+    FOREIGN KEY (room_id)
+    REFERENCES mamall.rooms (room_id)
+    ON DELETE SET NULL
+    ON UPDATE CASCADE,
+  CONSTRAINT fk_contacts_users
+    FOREIGN KEY (user_id)
+    REFERENCES mamall.users (user_id)
+    ON DELETE RESTRICT
+    ON UPDATE CASCADE,
+  CONSTRAINT fk_contacts_users1
+    FOREIGN KEY (contact_id)
+    REFERENCES mamall.users (user_id)
+    ON DELETE CASCADE
     ON UPDATE CASCADE);
 
 
