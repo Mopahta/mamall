@@ -7,7 +7,7 @@ import Rooms from "../features/Room";
 function Index({user, setUser}) {
 
     return (
-        <div className="ui vertically padded grid">
+        <div className="ui vertically padded stackable grid">
             <div className="six wide computer sixteen wide tablet column">
                 {user.auth?
                 <Contacts />
@@ -16,7 +16,7 @@ function Index({user, setUser}) {
                 }
 
             </div>
-            <div className="ten wide computer only column">
+            <div className="ten wide computer sixteen wide tablet column">
                 {user.auth?
                 <Rooms />
                 :

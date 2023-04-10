@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import * as config from "../config/config"
+import * as valid from "../common/validation";
 
 function Signup({user, setUser}) {
     const [errors, setErrors] = useState('')
@@ -18,11 +19,11 @@ function Signup({user, setUser}) {
         const data = new FormData(event.target)
         console.log(data)
 
-        if (document.getElementById("username").value === "" || !validateUsername(document.getElementById("username").value)) {
+        if (document.getElementById("username").value === "" || !valid.validateUsername(document.getElementById("username").value)) {
             document.getElementById("error-username").style.display="inline";
             return;
         }
-        if (document.getElementById("password").value === "" || !validatePassword(document.getElementById("password").value)) {
+        if (document.getElementById("password").value === "" || !valid.validatePassword(document.getElementById("password").value)) {
             document.getElementById("error-password").style.display="inline";
             return;
         }
@@ -54,48 +55,40 @@ function Signup({user, setUser}) {
     }
 
     return (
-    <div className="ui segment" style={{margin: "3% 30%"}}>
-        <div className="segment eight wide column">
-            <h1>Sign Up</h1>
+    <div className="ui vertically padded centered grid">
+        <div className="eight wide computer sixteen wide tablet column">
+            <div className="ui segment">
+                <h1>Sign Up</h1>
 
-            <form className="ui form" method="post" encType="multipart/form-data" onSubmit={formSubmit}>
-                <div className="field">
-                    <label>Username</label>
-                    <input type="text" id="username" name="username" placeholder="Username" />
-                    <div id="error-username" className="ui pointing red basic label" style={{display: "none"}}>
-                    Username can contain only latin symbols, numbers and underscores
+                <form className="ui form" method="post" encType="multipart/form-data" onSubmit={formSubmit}>
+                    <div className="field">
+                        <label>Username (required)</label>
+                        <input type="text" id="username" name="username" placeholder="Username" />
+                        <div id="error-username" className="ui pointing red basic label" style={{display: "none"}}>
+                        Username can contain only latin symbols, numbers and underscores
+                        </div>
                     </div>
-                </div>
 
-                <div className="field">
-                    <label>Email</label>
-                    <input type="email" id="email" name="email" placeholder="mail@email.com" />
-                </div>
-
-                <div className="field">
-                    <label>Password</label>
-                    <input type="password" id="password" name="password" placeholder="Password" />
-                    <div id="error-password" className="ui pointing red basic label" style={{display: "none"}}>
-                    Password must not contain whitespaces and must be at least 8 symbols long
+                    <div className="field">
+                        <label>Email</label>
+                        <input type="email" id="email" name="email" placeholder="mail@email.com" />
                     </div>
-                </div>
 
-                <button className="ui button" type="submit">Submit</button>
-                <p>{errors}</p>
-            </form>
+                    <div className="field">
+                        <label>Password (required)</label>
+                        <input type="password" id="password" name="password" placeholder="Password" />
+                        <div id="error-password" className="ui pointing red basic label" style={{display: "none"}}>
+                        Password must not contain whitespaces and must be at least 8 symbols long
+                        </div>
+                    </div>
+
+                    <button className="ui button" type="submit">Submit</button>
+                    <p>{errors}</p>
+                </form>
+            </div>
         </div>
     </div>
     )
-}
-
-function validateUsername(username) {
-    const regex = /^[a-zA-Z0-9_]+$/;
-    return regex.test(username);
-}
-
-function validatePassword(password) {
-    const regex = /^\S+$/;
-    return regex.test(password) && password.length >= 8;
 }
 
 export default Signup;
