@@ -32,8 +32,53 @@ app.get("/contacts", verifyToken, async function (req, res) {
     console.log("contacts");
     let contacts = await db.getUserContacts(req.user.user_id);
 
+    contacts.forEach(element => {
+        var date = new Date(element.contact_since);
+
+        let options = {
+            day: "numeric",
+            month: "long",
+            year: "numeric"
+        }
+        element.contact_since = new Intl.DateTimeFormat("en-US", options).format(date);
+    });
+
     res.status(200).json(contacts);
 });
+
+app.post("/contacts", verifyToken, upload.none(), async function (req, res) {
+    console.log("add contact");
+
+    console.log(req.body);
+    let username = req.body.username;
+
+    if (!username) {
+        return res.status(404).json({message: "No username passed."});
+    }
+
+    let userInfo = await db.getUserInfoByUsername(username);
+
+    if (!userInfo) {
+        return res.status(404).json({message: "No such user."})
+    }
+
+    if (userInfo.user_id === req.user.user_id) {
+        return res.status(403).json({message: "Can't add myself to contacts."})
+    }
+
+    let contactInfo = {
+        user_id: req.user.user_id,
+        contact_id: userInfo.user_id,
+        contact_nickname: ""
+    };
+
+    if (req.body.nickname) {
+        contactInfo.contact_nickname = req.body.nickname;
+    }
+
+    await db.addContact(contactInfo);
+    res.status(201).json({message: "Success"}).end();
+})
 
 app.post("/login", upload.none(), async function(req, res) {
     console.log("post /login")

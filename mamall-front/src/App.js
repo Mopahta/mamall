@@ -21,6 +21,9 @@ function App () {
 
     useEffect(() => {
         if (!user.auth) {
+            if (socket) {
+                socket.close();
+            }
             return;
         }
         if (socketStatus === WebSocket.CLOSED) {
@@ -115,16 +118,18 @@ function App () {
         setTimeout(heartBeatMessage, 10000);
     }, []);
 
+    const socketStatuses = ["connecting", "open", "closing", "closed"];
+
     return (
         <div style={{padding: "50px"}}>    
             <Header user={user} setUser={setUser}/>
         <Routes>
-            <Route index path="/" element={<Index user={user} setUser={setUser}/>} />
+            <Route index path="/" element={<Index user={user} />} />
             <Route path="login" element={<Login user={user} setUser={setUser}/>} />
             <Route path="signup" element={<Signup user={user} setUser={setUser}/>} />
             <Route path="*" element={<Error message={"Page not found"} />} />
         </Routes>
-        <span>The WebSocket is currently {socketStatus}</span>
+        <span>The WebSocket is currently {socketStatuses[socketStatus]}</span>
         <ul>
             {messageHistory.map((message, idx) => (
             <span key={idx}>{message ? message.data : null}</span>
