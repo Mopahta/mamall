@@ -1,9 +1,7 @@
-import { useState } from "react";
-import * as config from "../config/config"
-import Contacts from "../features/Contacts";
 import Error from "../common/Error";
 import Rooms from "../features/Room";
 import { Route, Routes } from "react-router-dom";
+import UserInteraction from "../features/UserInteraction";
 
 function Index({user}) {
 
@@ -11,7 +9,7 @@ function Index({user}) {
         <div className="ui vertically padded stackable grid">
             <div className="six wide computer sixteen wide tablet column">
                 {user.auth?
-                <Contacts user={user} />
+                <UserInteraction user={user} />
                 :
                 <Error message={"Sign in to see contacts"} />
                 }

@@ -34,10 +34,19 @@ function Login({user, setUser}) {
             body: data,
             credentials: 'include'
         })
-        .then(res => res.json())
+        .then(res => {
+            if (res.status === 401) {
+                console.log("401");
+            }
+            else {
+                return res.json();
+            }
+        })
         .then(data => {
-            setUser({auth: true, user_id: data.user_id, name: data.username});
-            navigate("/");
+            if (data) {
+                setUser({auth: true, user_id: data.user_id, name: data.username});
+                navigate("/");
+            }
         })
         .catch(err => {
             if (err.response) {
