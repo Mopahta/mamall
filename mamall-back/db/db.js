@@ -70,6 +70,10 @@ module.exports = {
 
     getUserContacts: users.getUserContacts,
 
+    getPendingContacts: users.getPendingContacts,
+
+    approvePendingContact: users.approvePendingContact,
+
     getUserActiveIcon: users.getUserActiveIconPath,
 
     getUserPrivacySets: users.getUserPrivacySets,

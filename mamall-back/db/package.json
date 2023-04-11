@@ -1,6 +1,6 @@
 {
   "name": "db",
-  "version": "0.2.7",
+  "version": "0.2.8",
   "description": "Database manager for Mamall Web App",
   "main": "db.js",
   "scripts": {

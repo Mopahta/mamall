@@ -201,7 +201,7 @@ const config = require('../config/config');
                         FROM 
                         ${config.pgschema}.users AS u INNER JOIN ${config.pgschema}.contacts AS co 
                         ON u.user_id = co.user_id
-                        WHERE u.user_id = $1) AS cont 
+                        WHERE u.user_id = $1 AND co.pending_invite = 0) AS cont 
                     INNER JOIN 
                     ${config.pgschema}.users 
                     ON cont.contact_id = users.user_id;`,
@@ -364,6 +364,69 @@ const config = require('../config/config');
                 contact.user_id, contact.contact_id, 
                 contact.contact_nickname, contact.pending_invite
             ]
+        }
+
+        try {
+            let res = await pool.query(query);
+        }
+        catch (err) {
+            console.error(err.stack);
+            return false;
+        }
+        
+        return true;
+
+    }
+
+    module.exports.getPendingContacts = async function(userId) {
+
+        if (!pool) {
+            console.error("Pool not initialized in db-users.")
+            return null
+        }
+
+        let contacts = []
+
+        let query =  {
+            name: 'get-pending-contacts',
+            text: `SELECT users.user_id, contact_nickname, contact_since, username, icon_file_id
+                    FROM 
+                    (SELECT co.user_id, contact_nickname, contact_since
+                        FROM 
+                        ${config.pgschema}.users AS u INNER JOIN ${config.pgschema}.contacts AS co 
+                        ON u.user_id = co.user_id
+                        WHERE co.contact_id = $1 AND co.pending_invite = 1) AS cont 
+                    INNER JOIN 
+                    ${config.pgschema}.users 
+                    ON cont.user_id = users.user_id;`,
+            values: [userId]
+        }
+
+        try {
+            let res = await pool.query(query);
+            contacts = res.rows;
+        }
+        catch (err) {
+            console.error(err.stack);
+        }
+        
+        return contacts;
+
+    }
+
+    module.exports.approvePendingContact = async function(userId, contactId) {
+
+        if (!pool) {
+            console.error("Pool not initialized in db-users.")
+            return null
+        }
+
+        let query =  {
+            name: 'approve-pending-contact',
+            text: `UPDATE ${config.pgschema}.contacts 
+                    SET pending_invite = 0
+                    WHERE user_id = $1 AND contact_id = $2;`,
+            values: [userId, contactId]
         }
 
         try {
