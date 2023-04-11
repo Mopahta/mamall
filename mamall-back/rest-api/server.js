@@ -31,8 +31,26 @@ app.use(cors({origin: 'http://localhost:3000', credentials: true}));
 app.use(cookieParser());
 
 router.get("/contacts", verifyToken, async function (req, res) {
-    console.log("contacts");
+    console.log("get contacts");
     let contacts = await db.getUserContacts(req.user.user_id);
+
+    contacts.forEach(element => {
+        var date = new Date(element.contact_since);
+
+        let options = {
+            day: "numeric",
+            month: "long",
+            year: "numeric"
+        }
+        element.contact_since = new Intl.DateTimeFormat("en-US", options).format(date);
+    });
+
+    res.status(200).json(contacts);
+});
+
+router.get("/contacts/invites", verifyToken, async function (req, res) {
+    console.log("contacts invites");
+    let contacts = await db.getPendingContacts(req.user.user_id);
 
     contacts.forEach(element => {
         var date = new Date(element.contact_since);
@@ -68,6 +86,10 @@ router.post("/contacts", verifyToken, upload.none(), async function (req, res) {
         return res.status(403).json({message: "Can't add myself to contacts."})
     }
 
+    let contacts = await db.getPendingContacts(req.user.user_id);
+
+    let pendingExists = contacts.find(x => x.user_id === userInfo.user_id);
+
     let contactInfo = {
         user_id: req.user.user_id,
         contact_id: userInfo.user_id,
@@ -79,7 +101,15 @@ router.post("/contacts", verifyToken, upload.none(), async function (req, res) {
         contactInfo.contact_nickname = req.body.nickname;
     }
 
+    if (pendingExists != null) {
+        contactInfo.pending_invite = 0;
+        
+        console.log("existing invitation");
+        await db.approvePendingContact(userInfo.user_id, req.user.user_id)
+    }
+    
     await db.addContact(contactInfo);
+
     res.status(201).json({message: "Success"}).end();
 })
 
@@ -136,7 +166,7 @@ router.post("/login", upload.none(), async function(req, res) {
 
             if (token) {
                 res.cookie('token', token, {maxAge: 24 * 60 * 60 * 1000, httpOnly: true, sameSite: 'none'});
-                res.cookie('refresh_token', refresh_token, {maxAge: 24 * 60 * 60 * 1000, httpOnly: true, path: "/refresh"});
+                res.cookie('refresh_token', refresh_token, {maxAge: 24 * 60 * 60 * 1000, httpOnly: true, path: "/api/v1/refresh"});
                 res.status(200).json({username: username, user_id: userInfo.user_id});
             }
         }
