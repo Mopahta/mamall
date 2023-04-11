@@ -11,7 +11,7 @@ function Index({user}) {
         <div className="ui vertically padded stackable grid">
             <div className="six wide computer sixteen wide tablet column">
                 {user.auth?
-                <Contacts />
+                <Contacts user={user} />
                 :
                 <Error message={"Sign in to see contacts"} />
                 }

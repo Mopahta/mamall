@@ -35,10 +35,18 @@ function Signup({user, setUser}) {
             body: data,
             credentials: 'include'
         })
-        .then(res => res.json())
+        .then(res => {
+            if (res.status === 200) {
+                console.log("sign up successfull");
+            }
+            else {
+                return res.json();
+            }
+        })
         .then(data => {
-            console.log("Sign Up successful");
-            // setUser({auth: true, user_id: data.user_id, name: data.username})
+            if (data) {
+                console.log(data);
+            }
         })
         .catch(err => {
             if (err.response) {
