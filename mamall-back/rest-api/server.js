@@ -80,6 +80,22 @@ app.post("/contacts", verifyToken, upload.none(), async function (req, res) {
     res.status(201).json({message: "Success"}).end();
 })
 
+app.post("/room/create", verifyToken, upload.none(), async function (req, res) {
+    console.log("room create");
+
+    console.log(req.body);
+
+    let ids = JSON.parse(req.body.ids);
+
+    console.log(req.user);
+
+    console.log(ids);
+
+    // let room = db.createRoom
+
+    res.status(200).json({status: "ok"});
+})
+
 app.post("/login", upload.none(), async function(req, res) {
     console.log("post /login")
 
@@ -136,26 +152,29 @@ app.post("/signup", upload.none(), async function(req, res) {
 
     if (username && password) {
         if (validateUsername(username) && validatePassword(password)) {
-            bcrypt.hash(password, saltRounds, function(err, hash) {
+            bcrypt.hash(password, saltRounds, async function(err, hash) {
                 if (err) {
                     console.error(err);
                     return;
                 }
-                let status = db.createUser({
+                let status = await db.createUser({
                     username: username,
                     password: hash,
                     email: email
                 });
 
-                if (status) {
+                if (!status) {
                     console.log(`User created: ${username} ${password} ${email}`);
+                    res.status(200).json({status: "ok"});
                 }
+                if (status == '23505') {
+                    res.status(401).json({status: "error", description: "User already exists"});
+                }
+                res.status(401).json({status: "ok"});
             });
             console.log("singup debug");
-            res.status(200).end();
         }
     } 
-    res.status(401).end()
 })
 
 function validateUsername(username) {
@@ -202,6 +221,10 @@ async function refreshToken(req, res) {
             if (decoded.user_id) {
                 userInfo = await db.getUserRefreshTokenById(decoded.user_id);
 
+                if (userInfo === undefined) {
+                    return res.status(403).end();
+                }
+
                 if (refresh_token === userInfo.refresh_token) {
 
                     let token = jwt.sign({user_id: decoded.user_id, username: userInfo.username}, config.jwtSecret, {expiresIn: '2h'});
@@ -213,6 +236,7 @@ async function refreshToken(req, res) {
 
                     res.cookie('token', token, {maxAge: 24 * 60 * 60 * 1000, httpOnly: true, sameSite: 'none'});
                     res.cookie('refresh_token', refresh_token, {maxAge: 24 * 60 * 60 * 1000, httpOnly: true, path: "/refresh"});
+                    res.status(200).json({user_id: userInfo.user_id, username: userInfo.username});
                 }
                 else {
                     throw "Refresh tokens don't match each other.";
@@ -227,8 +251,6 @@ async function refreshToken(req, res) {
             res.status(403).end();
         }
     }
-
-    res.status(200).json({user_id: userInfo.user_id, username: userInfo.username});
 }
 
 app.post("/validate", verifyToken, getTokenInfo);

@@ -307,12 +307,11 @@ const config = require('../config/config');
             let res = await pool.query(query);
         }
         catch (err) {
-            console.error(err.stack);
-            return false;
+            console.error(err);
+            return err.code;
         }
 
-        return true;
-
+        return 0;
     }
 
     module.exports.updateUserIcon = async function(userId, fileId) {
@@ -358,10 +357,13 @@ const config = require('../config/config');
             name: 'add-contact',
             text: `INSERT INTO 
                     ${config.pgschema}.contacts
-                    (user_id, contact_id, contact_nickname)
+                    (user_id, contact_id, contact_nickname, pending_invite)
                     VALUES
-                    ($1, $2, $3);`,
-            values: [contact.user_id, contact.contact_id, contact.contact_nickname]
+                    ($1, $2, $3, $4);`,
+            values: [
+                contact.user_id, contact.contact_id, 
+                contact.contact_nickname, contact.pending_invite
+            ]
         }
 
         try {

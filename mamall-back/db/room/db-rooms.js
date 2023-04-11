@@ -1,5 +1,4 @@
 const config = require('../config/config');
-
 (function() {
     let pool;
 
@@ -403,19 +402,19 @@ const config = require('../config/config');
                     ${config.pgschema}.rooms 
                     (name, room_mode_id) 
                     VALUES 
-                    ($1, $2);`,
+                    ($1, $2)
+                    RETURNING room_id;`,
             values: [roomInfo.name, roomInfo.room_mode_id]
         }
         
         try {
             let res = await pool.query(query);
+            return res;
         }
         catch (err) {
             console.error(err.stack);
-            return false;
+            return 0;
         }
-
-        return true;
 
     }
 
