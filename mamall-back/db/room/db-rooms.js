@@ -409,7 +409,7 @@ const config = require('../config/config');
         
         try {
             let res = await pool.query(query);
-            return res.rows;
+            return res.rows[0];
         }
         catch (err) {
             console.error(err.stack);

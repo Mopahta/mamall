@@ -84,6 +84,8 @@ module.exports = {
 
     addContact: users.addContact,
 
+    updateContactRoom: users.updateContactRoom,
+
     updateUserRefreshToken: users.updateUserRefreshToken,
 
     getUserRefreshTokenById: users.getUserRefreshTokenById,

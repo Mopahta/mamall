@@ -93,6 +93,7 @@ router.post("/contacts", verifyToken, upload.none(), async function (req, res) {
     let contactInfo = {
         user_id: req.user.user_id,
         contact_id: userInfo.user_id,
+        room_id: null,
         contact_nickname: "",
         pending_invite: 1
     };
@@ -105,7 +106,16 @@ router.post("/contacts", verifyToken, upload.none(), async function (req, res) {
         contactInfo.pending_invite = 0;
         
         console.log("existing invitation");
-        await db.approvePendingContact(userInfo.user_id, req.user.user_id)
+        await db.approvePendingContact(userInfo.user_id, req.user.user_id);
+
+        let room = await db.createRoom({name: "", room_mode_id: 1});
+        contactInfo.room_id = room.room_id;
+
+        console.log(room.room_id);
+
+        db.updateContactRoom({
+            user_id: userInfo.user_id, contact_id: req.user.user_id, room_id: room.room_id
+        });
     }
     
     await db.addContact(contactInfo);

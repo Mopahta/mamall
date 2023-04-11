@@ -357,13 +357,40 @@ const config = require('../config/config');
             name: 'add-contact',
             text: `INSERT INTO 
                     ${config.pgschema}.contacts
-                    (user_id, contact_id, contact_nickname, pending_invite)
+                    (user_id, contact_id, room_id, contact_nickname, pending_invite)
                     VALUES
-                    ($1, $2, $3, $4);`,
+                    ($1, $2, $3, $4, $5);`,
             values: [
-                contact.user_id, contact.contact_id, 
+                contact.user_id, contact.contact_id, contact.room_id,
                 contact.contact_nickname, contact.pending_invite
             ]
+        }
+
+        try {
+            let res = await pool.query(query);
+        }
+        catch (err) {
+            console.error(err.stack);
+            return false;
+        }
+        
+        return true;
+
+    }
+
+    module.exports.updateContactRoom = async function(contact) {
+
+        if (!pool) {
+            console.error("Pool not initialized in db-users.")
+            return null
+        }
+
+        let query =  {
+            name: 'update-contact-room',
+            text: `UPDATE ${config.pgschema}.contacts 
+                    SET room_id = $1
+                    WHERE user_id = $2 AND contact_id = $3;`,
+            values: [contact.room_id, contact.user_id, contact.contact_id]
         }
 
         try {
