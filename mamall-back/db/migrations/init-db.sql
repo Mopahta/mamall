@@ -88,6 +88,7 @@ CREATE TABLE IF NOT EXISTS mamall.contacts (
   user_id BIGINT NOT NULL,
   contact_id BIGINT NOT NULL,
   room_id BIGINT NULL,
+  pending_invite SMALLINT NULL DEFAULT 1,
   contact_nickname VARCHAR(45) NULL,
   contact_since TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP,
   CHECK (user_id <> contact_id),
