@@ -1,8 +1,6 @@
 import { useState, useEffect } from "react";
-import * as config from "../config/config";
-import Error from "../common/Error";
-import * as valid from "../common/validation";
 import Contacts from "./Contacts";
+import Pending from "./Pending";
 
 function UserInteraction({user}) {
 
@@ -15,7 +13,6 @@ function UserInteraction({user}) {
     }
 
     function RenderOption(props) {
-        console.log(props.user);
         let chosenOption = props.chosenOption;
 
         if (chosenOption === chosen.contacts) {
@@ -25,20 +22,33 @@ function UserInteraction({user}) {
 
         }
         else if (chosenOption === chosen.pending) {
-
+            return <Pending user={props.user} />
         }
-
     }
+
+    const changeOption = async (option) => {
+        choose(option);
+
+        // for (const property in chosen) {
+        //     if (chosen[property] === option) {
+        //         document.getElementById("option" + option).classList.add("active");
+        //     }
+        //     else {
+        //         document.getElementById("option" + option).classList.remove("active");
+        //     }
+        // }
+    }
+
     return (
         <div className="ui segment">
             <div className="ui secondary three item menu">
-                <a id="contacts-option" className="item active" >
+                <a className="item" id="option-0" onClick={() => changeOption(chosen.contacts)} >
                     Contacts
                 </a>
-                <a id="rooms-option" className="item">
+                <a className="item" id="option-1" onClick={() => changeOption(chosen.rooms)}>
                     Rooms
                 </a>
-                <a id="pending-option" className="item">
+                <a className="item" id="option-2" onClick={() => changeOption(chosen.pending)}>
                     Pending
                 </a>
             </div>
