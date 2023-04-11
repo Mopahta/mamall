@@ -13,6 +13,8 @@ const saltRounds = 8;
 let tokenBlackList = [];
 
 app = express();
+const router = express.Router();
+
 db.connect();
 
 const upload = multer({
@@ -28,7 +30,7 @@ const upload = multer({
 app.use(cors({origin: 'http://localhost:3000', credentials: true}));
 app.use(cookieParser());
 
-app.get("/contacts", verifyToken, async function (req, res) {
+router.get("/contacts", verifyToken, async function (req, res) {
     console.log("contacts");
     let contacts = await db.getUserContacts(req.user.user_id);
 
@@ -46,13 +48,13 @@ app.get("/contacts", verifyToken, async function (req, res) {
     res.status(200).json(contacts);
 });
 
-app.post("/contacts", verifyToken, upload.none(), async function (req, res) {
+router.post("/contacts", verifyToken, upload.none(), async function (req, res) {
     console.log("add contact");
 
     console.log(req.body);
     let username = req.body.username;
 
-    if (!username) {
+    if (username == null) {
         return res.status(404).json({message: "No username passed."});
     }
 
@@ -69,7 +71,8 @@ app.post("/contacts", verifyToken, upload.none(), async function (req, res) {
     let contactInfo = {
         user_id: req.user.user_id,
         contact_id: userInfo.user_id,
-        contact_nickname: ""
+        contact_nickname: "",
+        pending_invite: 1
     };
 
     if (req.body.nickname) {
@@ -80,7 +83,7 @@ app.post("/contacts", verifyToken, upload.none(), async function (req, res) {
     res.status(201).json({message: "Success"}).end();
 })
 
-app.post("/room/create", verifyToken, upload.none(), async function (req, res) {
+router.post("/room/create", verifyToken, upload.none(), async function (req, res) {
     console.log("room create");
 
     console.log(req.body);
@@ -96,7 +99,7 @@ app.post("/room/create", verifyToken, upload.none(), async function (req, res) {
     res.status(200).json({status: "ok"});
 })
 
-app.post("/login", upload.none(), async function(req, res) {
+router.post("/login", upload.none(), async function(req, res) {
     console.log("post /login")
 
     console.log(req.body)
@@ -114,8 +117,8 @@ app.post("/login", upload.none(), async function(req, res) {
         if (validateUsername(username) && validatePassword(password)) {
             let userInfo = await db.getUserInfoByUsername(username);
 
-            if (!userInfo) {
-                res.status(401).end();
+            if (userInfo == null) {
+                return res.status(401).end();
             }
             console.log(userInfo.password);
             let match = await bcrypt.compare(password, userInfo.password);
@@ -141,7 +144,7 @@ app.post("/login", upload.none(), async function(req, res) {
     res.status(401).end()
 })
 
-app.post("/signup", upload.none(), async function(req, res) {
+router.post("/signup", upload.none(), async function(req, res) {
     console.log("post /signup")
 
     console.log(req.body)
@@ -170,7 +173,6 @@ app.post("/signup", upload.none(), async function(req, res) {
                 if (status == '23505') {
                     res.status(401).json({status: "error", description: "User already exists"});
                 }
-                res.status(401).json({status: "ok"});
             });
             console.log("singup debug");
         }
@@ -187,7 +189,7 @@ function validatePassword(password) {
     return regex.test(password) && password.length >= 8;
 }
 
-app.get("/logout", function(req, res) {
+router.get("/logout", function(req, res) {
     console.log("get /logout")
 
     const token = req.cookies.token;
@@ -202,7 +204,7 @@ app.get("/logout", function(req, res) {
     res.clearCookie("token").clearCookie("refresh_token").status(200).end()
 })
 
-app.post("/refresh", refreshToken);
+router.post("/refresh", refreshToken);
 
 async function refreshToken(req, res) {
 
@@ -253,7 +255,7 @@ async function refreshToken(req, res) {
     }
 }
 
-app.post("/validate", verifyToken, getTokenInfo);
+router.post("/validate", verifyToken, getTokenInfo);
 
 function getTokenInfo(req, res) {
     // const header = req.headers['authorization']
@@ -298,9 +300,11 @@ function verifyToken(req, res, next) {
     }
 }
 
-app.get("*", function(req, res) {
+router.get("*", function(req, res) {
     res.status(404).end()
 })
+
+app.use("/api/v1",  router);
 
 app.listen(8080, function () {
     console.log("Server is running on port 8080 ");

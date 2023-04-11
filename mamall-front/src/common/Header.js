@@ -1,12 +1,13 @@
 import '../logo.css';
 import 'semantic-ui-css/semantic.min.css';
+import * as config from "../config/config";
 import { Link } from 'react-router-dom';
 
 function Header({user, setUser}) {
 
     const handleLogout = async function (e) {
 
-        await fetch("http://localhost:8080/logout", { 
+        await fetch(`${config.host}/logout`, { 
             method: 'GET',
             credentials: 'include'
         })
