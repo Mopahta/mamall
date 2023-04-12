@@ -195,9 +195,9 @@ const config = require('../config/config');
         let contacts = [];
         let query =  {
             name: 'get-user-contacts',
-            text: `SELECT user_id, contact_nickname, contact_since, username, icon_file_id
+            text: `SELECT user_id, contact_nickname, room_id, contact_since, username, icon_file_id
                     FROM 
-                    (SELECT contact_id, contact_nickname, contact_since
+                    (SELECT contact_id, room_id, contact_nickname, contact_since
                         FROM 
                         ${config.pgschema}.users AS u INNER JOIN ${config.pgschema}.contacts AS co 
                         ON u.user_id = co.user_id
@@ -370,11 +370,10 @@ const config = require('../config/config');
             let res = await pool.query(query);
         }
         catch (err) {
-            console.error(err.stack);
-            return false;
+            return err.code;
         }
         
-        return true;
+        return 0;
 
     }
 
