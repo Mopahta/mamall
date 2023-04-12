@@ -1,8 +1,8 @@
-import { useState, useEffect } from "react";
+import { memo, useState } from "react";
 import Contacts from "./Contacts";
 import Pending from "./Pending";
 
-function UserInteraction({user}) {
+const UserInteraction = memo( function UserInteraction({user, setRoom}) {
 
     const [chosenOption, choose] = useState(0);
 
@@ -16,7 +16,7 @@ function UserInteraction({user}) {
         let chosenOption = props.chosenOption;
 
         if (chosenOption === chosen.contacts) {
-            return <Contacts user={props.user} />;
+            return <Contacts user={props.user} setRoom={setRoom} />;
         }
         else if (chosenOption === chosen.rooms) {
 
@@ -56,6 +56,6 @@ function UserInteraction({user}) {
             <RenderOption user={user} chosenOption={chosenOption}/>
         </div>
     )
-}
+})
 
 export default UserInteraction;

@@ -111,6 +111,16 @@ router.post("/contacts", verifyToken, upload.none(), async function (req, res) {
         let room = await db.createRoom({name: "", room_mode_id: 1});
         contactInfo.room_id = room.room_id;
 
+        db.addUserToRoom({
+            room_id: room.room_id, user_id: req.user.user_id, 
+            user_room_nickname: null, user_role_id: 1
+        })
+
+        db.addUserToRoom({
+            room_id: room.room_id, user_id: userInfo.user_id, 
+            user_room_nickname: null, user_role_id: 1
+        })
+
         console.log(room.room_id);
 
         db.updateContactRoom({
@@ -118,9 +128,13 @@ router.post("/contacts", verifyToken, upload.none(), async function (req, res) {
         });
     }
     
-    await db.addContact(contactInfo);
+    let status = await db.addContact(contactInfo);
 
-    res.status(201).json({message: "Success"}).end();
+    if (status == '23505') {
+        return res.status(401).json({status: "error", description: "Contact already exists"});
+    }
+
+    res.status(201).json({status: "success"}).end();
 })
 
 router.post("/room/create", verifyToken, upload.none(), async function (req, res) {
@@ -137,6 +151,26 @@ router.post("/room/create", verifyToken, upload.none(), async function (req, res
     // let room = db.createRoom
 
     res.status(200).json({status: "ok"});
+})
+
+router.get("/room", verifyToken, upload.none(), async function (req, res) {
+    console.log("room join/get info");
+
+    console.log(req.query.roomId);
+
+    let roomId = JSON.parse(req.query.roomId);
+
+    let userRooms = await db.getUserRooms(req.user.user_id);
+
+    let userRoom = userRooms.find(x => x.room_id == roomId);
+
+    if (userRoom == null) {
+        return res.status(401).json({status: "error", message: "User doesn't prepend to this room."});
+    }
+
+    let room = await db.getRoomInfoById(roomId);
+
+    res.status(200).json(room);
 })
 
 router.post("/login", upload.none(), async function(req, res) {
@@ -277,7 +311,7 @@ async function refreshToken(req, res) {
                     await db.updateUserRefreshToken(decoded.user_id, refresh_token);
 
                     res.cookie('token', token, {maxAge: 24 * 60 * 60 * 1000, httpOnly: true, sameSite: 'none'});
-                    res.cookie('refresh_token', refresh_token, {maxAge: 24 * 60 * 60 * 1000, httpOnly: true, path: "/refresh"});
+                    res.cookie('refresh_token', refresh_token, {maxAge: 24 * 60 * 60 * 1000, httpOnly: true, path: "/api/v1/refresh"});
                     res.status(200).json({user_id: userInfo.user_id, username: userInfo.username});
                 }
                 else {
