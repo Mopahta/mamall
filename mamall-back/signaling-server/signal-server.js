@@ -1,10 +1,13 @@
 const config = require('./config/config');
 const WebSocketServer = require('websocket').server;
 const http = require('http');
+const jwt = require('jsonwebtoken');
 
 const db = require('../db/db');
 const shared = require('./shared/shared');
 const user_signal = require('./user-handler/user-signals');
+
+const { jwtSecret } = require('../secret');
 
 db.connect();
 
@@ -31,8 +34,31 @@ function originIsAllowed(origin) {
     return true;
 }
 
+function validateToken(token) {
+    console.log("Token:", token);
+    let user = null
+
+    if (!token) {
+        return user;
+    }
+
+    try {
+        user = jwt.verify(token.value, jwtSecret);
+        console.log("token verified");
+
+        if (user.user_id == null) {
+            return null;
+        }
+    }
+    catch (err) {
+        console.error(err);
+    }
+
+    return user;
+}
+
 wsServer.on('request', function(request) {
-    console.log('-----------------------');
+
     if (!originIsAllowed(request.origin)) {
         request.reject();
         console.log((new Date()) + ' Connection from origin ' + request.origin + ' rejected.');
@@ -40,15 +66,19 @@ wsServer.on('request', function(request) {
     }
     
     let jwtToken = request.cookies.find(x => x.name === 'token');
-    console.log(request.cookies);
 
-    // TODO: jwt token check
-   
+    let user = validateToken(jwtToken);
+
+    if (user == null) {
+        request.reject();
+    }
+
     try {
         var connection = request.accept('mamall-signal-protocol', request.origin);
 
         shared.addUser({
-            user_id: jwtToken,
+            user_id: user.user_id,
+            username: user.username,
             connection: connection,
             lastHeartBeat: Date.now()
         })
