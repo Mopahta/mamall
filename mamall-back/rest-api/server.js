@@ -8,6 +8,8 @@ const cookieParser = require('cookie-parser');
 const db = require('../db/db');
 const config = require('./config/config');
 
+const { jwtSecret } = require('../secret');
+
 const saltRounds = 8;
 
 let tokenBlackList = [];
@@ -27,7 +29,7 @@ const upload = multer({
         }})
 });
 
-app.use(cors({origin: 'http://localhost:3000', credentials: true}));
+app.use(cors({origin: config.corsOrigin, credentials: true}));
 app.use(cookieParser());
 
 router.get("/contacts", verifyToken, async function (req, res) {
@@ -199,8 +201,8 @@ router.post("/login", upload.none(), async function(req, res) {
 
             console.log(match)
             if (match) {
-                token = jwt.sign({user_id: userInfo.user_id, username: username}, config.jwtSecret, {expiresIn: '2h'});
-                refresh_token = jwt.sign({user_id: userInfo.user_id}, config.jwtSecret, {expiresIn: '1d'});
+                token = jwt.sign({user_id: userInfo.user_id, username: username}, jwtSecret, {expiresIn: '2h'});
+                refresh_token = jwt.sign({user_id: userInfo.user_id}, jwtSecret, {expiresIn: '1d'});
 
                 console.log("token ", token);
                 console.log("refresh token", refresh_token);
@@ -293,7 +295,7 @@ async function refreshToken(req, res) {
 
     if (refresh_token) {
         try {
-            let decoded = jwt.verify(refresh_token, config.jwtSecret);
+            let decoded = jwt.verify(refresh_token, jwtSecret);
             if (decoded.user_id) {
                 userInfo = await db.getUserRefreshTokenById(decoded.user_id);
 
@@ -303,8 +305,8 @@ async function refreshToken(req, res) {
 
                 if (refresh_token === userInfo.refresh_token) {
 
-                    let token = jwt.sign({user_id: decoded.user_id, username: userInfo.username}, config.jwtSecret, {expiresIn: '2h'});
-                    refresh_token = jwt.sign({user_id: decoded.user_id}, config.jwtSecret, {expiresIn: '1d'});
+                    let token = jwt.sign({user_id: decoded.user_id, username: userInfo.username}, jwtSecret, {expiresIn: '2h'});
+                    refresh_token = jwt.sign({user_id: decoded.user_id}, jwtSecret, {expiresIn: '1d'});
                     console.log("token ", token);
                     console.log("refresh token", refresh_token);
 
@@ -357,7 +359,7 @@ function verifyToken(req, res, next) {
     if (token) {
 
         if (!(token in tokenBlackList)) {
-            jwt.verify(token, config.jwtSecret, function (err,data) {
+            jwt.verify(token, jwtSecret, function (err,data) {
                 if (!(err && !data)) {
                     req.user = {user_id: data.user_id, username: data.username}
                     verified = true
@@ -380,6 +382,6 @@ router.get("*", function(req, res) {
 
 app.use("/api/v1",  router);
 
-app.listen(8080, function () {
-    console.log("Server is running on port 8080 ");
+app.listen(config.apiPort, function () {
+    console.log(`Server is running on port ${config.apiPort}`);
 });
