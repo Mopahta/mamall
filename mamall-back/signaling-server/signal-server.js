@@ -11,6 +11,8 @@ const { jwtSecret } = require('../secret');
 
 db.connect();
 
+let connectedUsers = [];
+
 var server = http.createServer(function(request, response) {
     console.log((new Date()) + ' Received request for ' + request.url);
     response.writeHead(404);
@@ -35,7 +37,6 @@ function originIsAllowed(origin) {
 }
 
 function validateToken(token) {
-    console.log("Token:", token);
     let user = null
 
     if (!token) {
@@ -44,7 +45,6 @@ function validateToken(token) {
 
     try {
         user = jwt.verify(token.value, jwtSecret);
-        console.log("token verified");
 
         if (user.user_id == null) {
             return null;
@@ -75,13 +75,16 @@ wsServer.on('request', function(request) {
 
     try {
         var connection = request.accept('mamall-signal-protocol', request.origin);
+        console.log(`username: ${user.username}`);
 
-        shared.addUser({
+        console.log(connectedUsers);
+        shared.addUser(connectedUsers, {
             user_id: user.user_id,
             username: user.username,
             connection: connection,
             lastHeartBeat: Date.now()
-        })
+        });
+        console.log(connectedUsers);
     }
     catch (err) {
         console.log(err);
@@ -95,7 +98,7 @@ wsServer.on('connect', function(connection) {
     connection.on('message', async function(message) {
         if (message.type === 'utf8') {
 
-            let connectedUser = shared.findUserByConnection(connection);
+            let connectedUser = shared.findUserByConnection(connectedUsers, connection);
 
             if (!connectedUser) {
                 return;
@@ -120,7 +123,7 @@ wsServer.on('connect', function(connection) {
 
     connection.on('close', function(reasonCode, description) {
         console.log(new Date() + ' Peer ' + connection.remoteAddress + ' disconnected.');
-        shared.deleteUserByConnection(connection);
+        connectedUsers = shared.deleteUserByConnection(connectedUsers, connection);
     });
 
     checkConnectionAvailability();
@@ -133,7 +136,7 @@ wsServer.on('upgradeError', function(error) {
 async function dispatchMessage(message) {
 
     let messageHandlers = [
-        heartbeatUpdate, user_signal.callUser, user_signal.callRoom
+        heartbeatUpdate, user_signal.callUser, user_signal.joinRoom, user_signal.callRoom
     ];
 
     console.log(`Parsed type: ${message.payload.type}`);
@@ -149,23 +152,17 @@ async function dispatchMessage(message) {
 }
 
 function heartbeatUpdate(data) {
+    console.log(data);
     if (!data.user_id) {
         return;
     }
 
-    shared.updateBeatTime(data);
-    console.log(shared.connectedUsers.map((item) => {item.connection = null; return item} ));
+    shared.updateBeatTime(connectedUsers, data);
 
-
-    let res = {
-        type: 0,
-        status: 0
-    }
-
-    return res;
+    console.log(`Connections amount: ${connectedUsers.length}`);
 }
 
 function checkConnectionAvailability() {
-    shared.deleteOldConnections();
+    connectedUsers = shared.deleteOldConnections(connectedUsers);
     setTimeout(checkConnectionAvailability, 10 * 60 * 1000);
 }

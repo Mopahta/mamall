@@ -1,26 +1,26 @@
-module.exports = {
-    connectedUsers: [],
-    getUsers: function () {
-        return this.connectedUsers;
-    },
-    addUser: function (usrInfo) {
-        this.connectedUsers.push(usrInfo);
+var Shared = module.exports = {
+
+    addUser: function (connected, usrInfo) {
+        connected.push(usrInfo);
         return;
     },
-    findUserByConnection: function (connection) {
-        return this.connectedUsers.find(x => x.connection === connection);
+
+    findUserByConnection: function (connected, connection) {
+        return connected.find(x => x.connection === connection);
     },
-    deleteUserByConnection: function (connection) {
-        this.connectedUsers = this.connectedUsers.filter(x => x.connection !== connection);
-        return;
+
+    deleteUserByConnection: function (connected, connection) {
+        return connected.filter(x => x.connection !== connection);
     },
-    updateBeatTime: function (data) {
-        let userIndex = this.connectedUsers.findIndex(x => x.user_id === data.user_id);
-        this.connectedUsers[userIndex].lastHeartBeat = data.payload.time;
+
+    updateBeatTime: function (connected, data) {
+        let userIndex = connected.findIndex(x => x.user_id === data.user_id);
+        connected[userIndex].lastHeartBeat = data.payload.time;
     },
-    deleteOldConnections: function () {
+
+    deleteOldConnections: function (connected) {
         let dateNow = Date.now();
-        this.connectedUsers = this.connectedUsers.filter(user => (dateNow - user.lastHeartBeat) > 2 * 60 * 1000);
+        return connected.filter(user => (dateNow - user.lastHeartBeat) < 2 * 60 * 1000);
     }
 
 };
