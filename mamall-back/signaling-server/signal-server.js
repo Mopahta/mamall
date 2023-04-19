@@ -7,6 +7,8 @@ const db = require('../db/db');
 const shared = require('./shared/shared');
 const user_signal = require('./user-handler/user-signals');
 
+const mediaServer = require('../media-server/media-server');
+
 const { jwtSecret } = require('../secret');
 
 db.connect();
@@ -75,23 +77,20 @@ wsServer.on('request', function(request) {
 
     try {
         var connection = request.accept('mamall-signal-protocol', request.origin);
-        console.log(`username: ${user.username}`);
 
-        console.log(connectedUsers);
         shared.addUser(connectedUsers, {
             user_id: user.user_id,
             username: user.username,
             connection: connection,
             lastHeartBeat: Date.now()
         });
-        console.log(connectedUsers);
     }
     catch (err) {
         console.log(err);
         return;
     }
 
-    console.log((new Date()) + ' Connection accepted.');
+    console.log((new Date()) + ` ${user.username} Connection accepted.`);
 });
 
 wsServer.on('connect', function(connection) {
@@ -113,6 +112,7 @@ wsServer.on('connect', function(connection) {
             }
 
             if (res) {
+                console.log(res);
                 connection.sendUTF(JSON.stringify(res));
             }
         }
@@ -139,30 +139,26 @@ async function dispatchMessage(message) {
         heartbeatUpdate, user_signal.callUser, user_signal.joinRoom, user_signal.callRoom
     ];
 
-    console.log(`Parsed type: ${message.payload.type}`);
     let result;
 
     if (message.payload.type != undefined) {
-        result = await messageHandlers[message.payload.type](message);
+        result = await messageHandlers[message.payload.type](message, connectedUsers);
     }
 
-    console.log("result", result);
-    
     return result;
 }
 
-function heartbeatUpdate(data) {
-    console.log(data);
+function heartbeatUpdate(data, connected) {
     if (!data.user_id) {
         return;
     }
 
-    shared.updateBeatTime(connectedUsers, data);
-
-    console.log(`Connections amount: ${connectedUsers.length}`);
+    shared.updateBeatTime(connected, data);
 }
 
 function checkConnectionAvailability() {
     connectedUsers = shared.deleteOldConnections(connectedUsers);
-    setTimeout(checkConnectionAvailability, 10 * 60 * 1000);
+    setTimeout(checkConnectionAvailability, 60 * 1000);
+
+    console.log(`${new Date()} Connections amount: ${connectedUsers.length}`);
 }

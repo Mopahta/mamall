@@ -9,6 +9,10 @@ var Shared = module.exports = {
         return connected.find(x => x.connection === connection);
     },
 
+    findUserById: function (connected, user_id) {
+        return connected.find(x => x.user_id == user_id);
+    },
+
     deleteUserByConnection: function (connected, connection) {
         return connected.filter(x => x.connection !== connection);
     },
