@@ -3,7 +3,7 @@ import * as config from "../config/config";
 import Error from "../common/Error";
 import * as valid from "../common/validation";
 
-function Contacts({user, setRoom}) {
+function Contacts({user, setRoom, socket}) {
     const [error, setError] = useState(null);
     const [isLoaded, setIsLoaded] = useState(false);
     const [items, setItems] = useState([]);
@@ -84,6 +84,15 @@ function Contacts({user, setRoom}) {
                         roomModeId: data.room_mode_id,
                         description: data.description
                     })
+                    console.log(socket);
+                    if (socket != null) {
+                        let message = {
+                            type: 1,
+                            contact_id: contact.user_id
+                        }
+
+                        socket.send(JSON.stringify(message));
+                    }
                     console.log(data);
                 }
             }

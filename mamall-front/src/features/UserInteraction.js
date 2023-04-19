@@ -2,7 +2,7 @@ import { memo, useState } from "react";
 import Contacts from "./Contacts";
 import Pending from "./Pending";
 
-const UserInteraction = memo( function UserInteraction({user, setRoom}) {
+const UserInteraction = memo(function UserInteraction({user, setRoom, socket}) {
 
     const [chosenOption, choose] = useState(0);
 
@@ -16,7 +16,7 @@ const UserInteraction = memo( function UserInteraction({user, setRoom}) {
         let chosenOption = props.chosenOption;
 
         if (chosenOption === chosen.contacts) {
-            return <Contacts user={props.user} setRoom={setRoom} />;
+            return <Contacts user={props.user} setRoom={setRoom} socket={socket} />;
         }
         else if (chosenOption === chosen.rooms) {
 

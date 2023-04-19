@@ -17,12 +17,16 @@ function App () {
 
     const [socketStatus, setSocketStatus] = useState(WebSocket.CLOSED);
 
-    const [socket, setSocket] = useState(null);
+    let socket = useRef(null);
+
+    const setSocket = useCallback((sock) => {
+        socket.current = sock;
+    }, [])
 
     useEffect(() => {
         if (!user.auth) {
-            if (socket) {
-                socket.close();
+            if (socket.current) {
+                socket.current.close();
             }
             return;
         }
@@ -48,6 +52,7 @@ function App () {
         });
 
         newSocket.onmessage = handleMessage;
+
         newSocket.onclose = function (e) {
             setTimeout(() => {
                 setSocketStatus(WebSocket.CLOSED);
@@ -55,7 +60,7 @@ function App () {
         };
 
         newSocket.onerror = function (err) {
-            socket.close();
+            socket.current.close();
         };
 
     }
@@ -105,6 +110,25 @@ function App () {
     );
 
     const heartBeatMessage = useCallback(() => { 
+        setTimeout(heartBeatMessage, 10000);
+        let user;
+
+        setUser(user_ => {
+            user = user_;
+            return user_;
+        })
+
+        let socketStatus;
+
+        setSocketStatus(status_ => {
+            socketStatus = status_;
+            return status_;
+        })
+
+        if (user == null) {
+            return;
+        }
+
         if (!user.auth || socketStatus !== WebSocket.OPEN) {
             return;
         }
@@ -113,10 +137,9 @@ function App () {
             type: 0,
             time: Date.now()
         }
-        socket.send(JSON.stringify(message));
-
-        setTimeout(heartBeatMessage, 10000);
-    }, []);
+        socket.current.send(JSON.stringify(message));
+        console.log(`sent ${message.time}`);
+    }, [user]);
 
     const socketStatuses = ["connecting", "open", "closing", "closed"];
 
@@ -124,7 +147,7 @@ function App () {
         <div style={{padding: "50px"}}>    
             <Header user={user} setUser={setUser}/>
         <Routes>
-            <Route index path="/" element={<Index user={user} />} />
+            <Route index path="/" element={<Index user={user} socket={socket.current} />} />
             <Route path="login" element={<Login user={user} setUser={setUser}/>} />
             <Route path="signup" element={<Signup user={user} setUser={setUser}/>} />
             <Route path="*" element={<Error message={"Page not found"} />} />
