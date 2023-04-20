@@ -1,16 +1,10 @@
-import { useCallback, useState } from "react";
+import { useCallback, memo, useState } from "react";
 import Error from "../common/Error";
 import Room from "../features/Room";
 import { Route, Routes } from "react-router-dom";
 import UserInteraction from "../features/UserInteraction";
 
-function Index({user, socket}) {
-
-    const [room, setRoom] = useState({ 
-        roomId: 0, roomName: null, roomModeId: 0, description: null
-    });
-
-    const changeRoom = useCallback((roomInfo) => setRoom(roomInfo), [setRoom])
+const Index = memo(function Index({user, socket, room, changeRoom}) {
 
     return (
         <div className="ui vertically padded stackable grid">
@@ -33,6 +27,6 @@ function Index({user, socket}) {
             </div>
         </div>
     )
-}
+})
 
 export default Index;

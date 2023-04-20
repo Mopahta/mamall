@@ -84,11 +84,12 @@ function Contacts({user, setRoom, socket}) {
                         roomModeId: data.room_mode_id,
                         description: data.description
                     })
-                    console.log(socket);
+
                     if (socket != null) {
                         let message = {
                             type: 1,
-                            contact_id: contact.user_id
+                            contact_id: contact.user_id,
+                            room_id: data.room_id
                         }
 
                         socket.send(JSON.stringify(message));

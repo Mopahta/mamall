@@ -3,6 +3,7 @@ import logo from './logo.svg';
 import Header from './common/Header';
 import { useState, useCallback, useEffect, useRef } from 'react';
 import { Route, Routes } from 'react-router-dom';
+import { Device } from 'mediasoup-client';
 import config from './config/config';
 import Error from './common/Error';
 import Index from './routes/Index';
@@ -14,10 +15,21 @@ function App () {
     const [user, setUser] = useState({ auth: false, user_id: 0, name: ''});
     const [socketUrl, setSocketUrl] = useState(config.wsHost);
     const [messageHistory, setMessageHistory] = useState([]);
+    const [webRtcSupport, setWRtcSupport] = useState(true);
 
     const [socketStatus, setSocketStatus] = useState(WebSocket.CLOSED);
 
+    const [room, setRoom] = useState({ 
+        roomId: 0, roomName: null, roomModeId: 0, description: null
+    });
+
+    const changeRoom = useCallback((roomInfo) => setRoom(roomInfo), [setRoom])
+
+
     let socket = useRef(null);
+    let mediaDevice = useRef(null);
+    let sendTransport = useRef(null);
+    let receiveTransport = useRef(null);
 
     const setSocket = useCallback((sock) => {
         socket.current = sock;
@@ -36,10 +48,95 @@ function App () {
         }
     }, [socketStatus, user.auth])
 
-    function handleMessage(message) {
+    async function handleMessage(message) {
 
         console.log(message.data);
 
+        let res = dispatchMessage(JSON.parse(message.data));
+    }
+
+    async function dispatchMessage(message) {
+
+        let messageHandlers = [
+            (x) => {}, callRecv, callReq, joinReq
+        ];
+
+        let result;
+
+        if (message.type != undefined) {
+            result = await messageHandlers[message.type](message);
+        }
+
+        return result;
+    }
+
+    /* 
+        data = {
+            type: 1,
+            user_id,
+            room_id,
+            rtp: rtpCapabilities
+        } 
+    */
+    async function callRecv(data) {
+        if (data.status === 'failed') {
+            return;
+        }
+        prepareMediaDevice(data.rtp);
+
+    }
+
+    /*
+        data = {
+            type: 2,
+            status: 'failed'/'ok',
+            message,
+            [rtp]: rtpCapabilites
+        }
+    */
+    async function callReq(data) {
+        if (data.status === 'failed') {
+            return;
+        }
+        prepareMediaDevice(data.rtp);
+
+        if (socket.current != null) {
+            let message = {
+                type: 2,
+                room_id: room.roomId,
+                // sctpCapabilities: mediaDevice.current.sctpCapabilities
+            }
+
+            socket.current.send(JSON.stringify(message));
+        }
+    }
+
+    /*
+        {
+            type: 3,
+            specs: 
+                id
+                iceParameters
+                iceCandidates
+                dtlsParameters
+                sctpParameters
+        }
+    */
+    async function joinReq(data) {
+
+        const sendTransport = mediaDevice.createSendTransport({
+            id: data.specs.id,
+            iceParameters: data.specs.iceParameters,
+            iceCandidates: data.specs.iceCandidates,
+            dtlsParameters: data.specs.dtlsParameters,
+            sctpParameters: data.specs.sctpParameters
+        })
+
+    }
+
+    async function prepareMediaDevice(rtp) {
+        var cap = {routerRtpCapabilities: rtp};
+        await mediaDevice.current.load(cap);
     }
 
     function connectSocket() {
@@ -100,6 +197,18 @@ function App () {
                 console.log(err)
             })
         }
+
+        try
+        {
+            mediaDevice.current = new Device();
+        }
+        catch (error)
+        {
+            if (error.name === 'UnsupportedError')
+                console.warn('browser not supported');
+                setWRtcSupport(false);
+        }
+
         checkToken(config.host + config.validatePath);
         heartBeatMessage();
     }, []);
@@ -138,7 +247,7 @@ function App () {
             time: Date.now()
         }
         socket.current.send(JSON.stringify(message));
-        console.log(`sent ${message.time}`);
+        console.log(`sent heartbeat`);
     }, [user]);
 
     const socketStatuses = ["connecting", "open", "closing", "closed"];
@@ -147,7 +256,7 @@ function App () {
         <div style={{padding: "50px"}}>    
             <Header user={user} setUser={setUser}/>
         <Routes>
-            <Route index path="/" element={<Index user={user} socket={socket.current} />} />
+            <Route index path="/" element={<Index user={user} socket={socket.current} room={room} changeRoom={changeRoom}/>} />
             <Route path="login" element={<Login user={user} setUser={setUser}/>} />
             <Route path="signup" element={<Signup user={user} setUser={setUser}/>} />
             <Route path="*" element={<Error message={"Page not found"} />} />
