@@ -1,6 +1,6 @@
 {
   "name": "signaling-server",
-  "version": "0.1.6",
+  "version": "0.2.0",
   "description": "Signaling server for Mamall web app",
   "main": "signal-server.js",
   "scripts": {

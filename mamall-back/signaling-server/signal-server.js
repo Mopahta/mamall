@@ -5,13 +5,13 @@ const jwt = require('jsonwebtoken');
 
 const db = require('../db/db');
 const shared = require('./shared/shared');
-const user_signal = require('./user-handler/user-signals');
 
 const mediaServer = require('../media-server/media-server');
 
 const { jwtSecret } = require('../secret');
 
 db.connect();
+mediaServer.init();
 
 let connectedUsers = [];
 
@@ -53,7 +53,7 @@ function validateToken(token) {
         }
     }
     catch (err) {
-        console.error(err);
+        console.error("Token expired.");
     }
 
     return user;
@@ -72,7 +72,7 @@ wsServer.on('request', function(request) {
     let user = validateToken(jwtToken);
 
     if (user == null) {
-        request.reject();
+        return request.reject();
     }
 
     try {
@@ -136,24 +136,24 @@ wsServer.on('upgradeError', function(error) {
 async function dispatchMessage(message) {
 
     let messageHandlers = [
-        heartbeatUpdate, user_signal.callUser, user_signal.joinRoom, user_signal.callRoom
+        heartbeatUpdate, callUser, joinRoom, callRoom, 
     ];
 
     let result;
 
     if (message.payload.type != undefined) {
-        result = await messageHandlers[message.payload.type](message, connectedUsers);
+        result = await messageHandlers[message.payload.type](message);
     }
 
     return result;
 }
 
-function heartbeatUpdate(data, connected) {
+function heartbeatUpdate(data) {
     if (!data.user_id) {
         return;
     }
 
-    shared.updateBeatTime(connected, data);
+    shared.updateBeatTime(connectedUsers, data);
 }
 
 function checkConnectionAvailability() {
@@ -161,4 +161,54 @@ function checkConnectionAvailability() {
     setTimeout(checkConnectionAvailability, 60 * 1000);
 
     console.log(`${new Date()} Connections amount: ${connectedUsers.length}`);
+}
+
+async function callUser(data) {
+    console.log(data);
+
+    let res = {
+        type: 2,
+        status: 'failed',
+        message: 'User is not available.'
+    }
+
+    let user = shared.findUserById(connectedUsers, data.payload.contact_id);
+
+    if (user != null) {
+        res.status = 'ok';
+        res.message = 'User called.';
+
+        await mediaServer.createRoom(data.payload.room_id);
+
+        let rtpCapabilities = await mediaServer.getRtpCapabilities(data.payload.room_id);
+
+        res.rtp = rtpCapabilities;
+
+        let message = {
+            type: 1,
+            user_id: data.user_id,
+            room_id: data.payload.room_id,
+            rtp: rtpCapabilities
+        }
+
+        user.connection.sendUTF(JSON.stringify(message));
+    }
+
+    return res;
+}
+
+async function joinRoom(data) {
+    if (data.payload.room_id == null) {
+        return;
+    }
+    let specs = await mediaServer.joinRoom(data.payload.room_id)
+
+    return {
+        type: 3,
+        specs: specs
+    }
+}
+
+function callRoom(data) {
+
 }
