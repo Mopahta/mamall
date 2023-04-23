@@ -13,7 +13,7 @@ async function init() {
         logLevel: "debug",
     });
 
-    webRtcServer = worker.createWebRtcServer({
+    webRtcServer = await worker.createWebRtcServer({
         listenInfos :
         [
             {
@@ -43,6 +43,12 @@ async function createRoom(room_id) {
     if (worker == null) {
         console.error("No worker created.");
         return;
+    }
+
+    let roomRouter = routers.find(x => x.room_id == room_id);
+
+    if (roomRouter != null) {
+        return roomRouter;
     }
 
     let router = await worker.createRouter({
@@ -80,13 +86,15 @@ async function createRoom(room_id) {
         ],
     })
 
-    routers.push({
+    roomRouter = {
         room_id: room_id,
         router: router,
         transports: []
-    });
+    }
 
-    return router;
+    routers.push(roomRouter);
+
+    return roomRouter;
 }
 
 async function getRoomRouterCapabilities(room_id) {
@@ -98,10 +106,10 @@ async function joinRoom(room_id) {
     let roomRouter = routers.find(x => x.room_id == room_id);
 
     if (roomRouter == null) {
-        await createRoom(room_id);
+        roomRouter = await createRoom(room_id);
     }
 
-    let webRtcTransport = await roomRouter.createWebRtcTransport({
+    let webRtcTransport = await roomRouter.router.createWebRtcTransport({
         webRtcServer: webRtcServer,
         enableUdp    : true,
         enableTcp    : true,
@@ -124,6 +132,7 @@ async function joinRoom(room_id) {
 module.exports = {
     init: init,
     stop: stop,
+    routers: routers,
     createRoom: createRoom,
     joinRoom: joinRoom,
     getRtpCapabilities: getRoomRouterCapabilities
