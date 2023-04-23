@@ -6,8 +6,6 @@ function Rooms({user, room}) {
     const [isLoaded, setIsLoaded] = useState(false);
     const [items, setItems] = useState([]);
 
-    let { roomId } = useParams()
-
     return (
         <div className="ui segment">
             {room.roomId != 0 ?

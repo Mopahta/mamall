@@ -14,7 +14,6 @@ function App () {
 
     const [user, setUser] = useState({ auth: false, user_id: 0, name: ''});
     const [socketUrl, setSocketUrl] = useState(config.wsHost);
-    const [messageHistory, setMessageHistory] = useState([]);
     const [webRtcSupport, setWRtcSupport] = useState(true);
 
     const [socketStatus, setSocketStatus] = useState(WebSocket.CLOSED);
@@ -63,6 +62,7 @@ function App () {
 
         let result;
 
+        console.log("room in dispatchMessage ", room);
         if (message.type != undefined) {
             result = await messageHandlers[message.type](message);
         }
@@ -91,25 +91,30 @@ function App () {
             type: 2,
             status: 'failed'/'ok',
             message,
+            room_id,
             [rtp]: rtpCapabilites
         }
     */
-    async function callReq(data) {
+    const callReq = useCallback(async (data) => { 
         if (data.status === 'failed') {
             return;
         }
-        prepareMediaDevice(data.rtp);
+        
+        await prepareMediaDevice(data.rtp);
+
+        console.log("roomid from websocket ", data.room_id);
 
         if (socket.current != null) {
+            
             let message = {
                 type: 2,
-                room_id: room.roomId,
+                room_id: data.room_id,
                 // sctpCapabilities: mediaDevice.current.sctpCapabilities
             }
 
             socket.current.send(JSON.stringify(message));
         }
-    }
+    });
 
     /*
         {
@@ -124,7 +129,7 @@ function App () {
     */
     async function joinReq(data) {
 
-        const sendTransport = mediaDevice.createSendTransport({
+        const sendTransport = mediaDevice.current.createSendTransport({
             id: data.specs.id,
             iceParameters: data.specs.iceParameters,
             iceCandidates: data.specs.iceCandidates,
@@ -132,11 +137,100 @@ function App () {
             sctpParameters: data.specs.sctpParameters
         })
 
+        console.log("create send transport createed");
+
+        // https://www.npmjs.com/package/ws-sync-request
+        sendTransport.on('connect', async ({ dtlsParameters }, callback, errback) =>
+            {
+                // Here we must communicate our local parameters to our remote transport.
+                try {
+
+                    let message = {
+                        type: 3,
+                        transportId: sendTransport.id,
+                        dtlsParameters,
+                        room_id: data.room_id,
+                        // sctpCapabilities: mediaDevice.current.sctpCapabilities
+                    }
+
+                    socket.current.send(JSON.stringify(message));
+
+                    // Done in the server, tell our transport.
+                    callback();
+                }
+                catch (error) {
+                    // Something was wrong in server side.
+                    errback(error);
+                }
+            }
+        );
+
+    //     // Set transport "produce" event handler.
+    //     sendTransport.on('produce', async ({ kind, rtpParameters, appData }, callback, errback) =>
+    //     {
+    //         // Here we must communicate our local parameters to our remote transport.
+    //         try {
+    //         const { id } = await mySignaling.request(
+    //             'produce',
+    //             { 
+    //             transportId : sendTransport.id,
+    //             kind,
+    //             rtpParameters,
+    //             appData
+    //             });
+
+    //         // Done in the server, pass the response to our transport.
+    //         callback({ id });
+    //         }
+    //         catch (error)
+    //         {
+    //         // Something was wrong in server side.
+    //         errback(error);
+    //         }
+    //     });
+
+    //     // Set transport "producedata" event handler.
+    //     sendTransport.on(
+    //     'producedata',
+    //     async ({ sctpStreamParameters, label, protocol, appData }, callback, errback) =>
+    //     {
+    //         // Here we must communicate our local parameters to our remote transport.
+    //         try
+    //         {
+    //         const { id } = await mySignaling.request(
+    //             'produceData',
+    //             { 
+    //             transportId : sendTransport.id,
+    //             sctpStreamParameters,
+    //             label,
+    //             protocol,
+    //             appData
+    //             });
+
+    //         // Done in the server, pass the response to our transport.
+    //         callback({ id });
+    //         }
+    //         catch (error)
+    //         {
+    //         // Something was wrong in server side.
+    //         errback(error);
+    //         }
+    //     });
+
+    //     const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+    //     const webcamTrack = stream.getVideoTracks()[0];
+    //     const webcamProducer = await sendTransport.produce({ track: webcamTrack });
+
+    //     // Produce data (DataChannel).
+    //     const dataProducer =
+    //     await sendTransport.produceData({ ordered: true, label: 'foo' });
     }
 
     async function prepareMediaDevice(rtp) {
-        var cap = {routerRtpCapabilities: rtp};
-        await mediaDevice.current.load(cap);
+        if (!mediaDevice.current.loaded) {
+            var cap = {routerRtpCapabilities: rtp};
+            await mediaDevice.current.load(cap);
+        }
     }
 
     function connectSocket() {
@@ -262,11 +356,6 @@ function App () {
             <Route path="*" element={<Error message={"Page not found"} />} />
         </Routes>
         <span>The WebSocket is currently {socketStatuses[socketStatus]}</span>
-        <ul>
-            {messageHistory.map((message, idx) => (
-            <span key={idx}>{message ? message.data : null}</span>
-            ))}
-        </ul>
         </div>
     );
 };

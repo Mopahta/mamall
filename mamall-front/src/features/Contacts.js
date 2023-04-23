@@ -78,12 +78,13 @@ function Contacts({user, setRoom, socket}) {
                     console.log(data.message);
                 }
                 else {
+                    console.log("room data", data);
                     setRoom({
                         roomId: data.room_id,
                         roomName: data.name,
                         roomModeId: data.room_mode_id,
                         description: data.description
-                    })
+                    }, () => {console.log("after set")});
 
                     if (socket != null) {
                         let message = {
