@@ -211,7 +211,7 @@ router.post("/login", upload.none(), async function(req, res) {
             }
 
             if (token) {
-                res.cookie('token', token, {maxAge: 24 * 60 * 60 * 1000, httpOnly: true, sameSite: 'none'});
+                res.cookie('token', token, {maxAge: 24 * 60 * 60 * 1000, httpOnly: true });
                 res.cookie('refresh_token', refresh_token, {maxAge: 24 * 60 * 60 * 1000, httpOnly: true, path: "/api/v1/refresh"});
                 res.status(200).json({username: username, user_id: userInfo.user_id});
             }
@@ -312,7 +312,7 @@ async function refreshToken(req, res) {
 
                     await db.updateUserRefreshToken(decoded.user_id, refresh_token);
 
-                    res.cookie('token', token, {maxAge: 24 * 60 * 60 * 1000, httpOnly: true, sameSite: 'none'});
+                    res.cookie('token', token, {maxAge: 24 * 60 * 60 * 1000, httpOnly: true });
                     res.cookie('refresh_token', refresh_token, {maxAge: 24 * 60 * 60 * 1000, httpOnly: true, path: "/api/v1/refresh"});
                     res.status(200).json({user_id: userInfo.user_id, username: userInfo.username});
                 }
