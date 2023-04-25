@@ -136,7 +136,8 @@ wsServer.on('upgradeError', function(error) {
 async function dispatchMessage(message) {
 
     let messageHandlers = [
-        heartbeatUpdate, callUser, joinRoom, callRoom, 
+        heartbeatUpdate, callUser, createMediaTransport, 
+        transportConnect, getOnProduce
     ];
 
     let result;
@@ -177,6 +178,7 @@ async function callUser(data) {
     if (user != null) {
         res.status = 'ok';
         res.message = 'User called.';
+        res.room_id = data.payload.room_id;
 
         await mediaServer.createRoom(data.payload.room_id);
 
@@ -197,18 +199,33 @@ async function callUser(data) {
     return res;
 }
 
-async function joinRoom(data) {
+async function createMediaTransport(data) {
     if (data.payload.room_id == null) {
         return;
     }
-    let specs = await mediaServer.joinRoom(data.payload.room_id)
+    let specs = await mediaServer.createMediaTransport(data.payload.room_id)
 
     return {
         type: 3,
+        room_id: data.payload.room_id,
         specs: specs
     }
 }
 
-function callRoom(data) {
+async function transportConnect(data) {
+    await mediaServer.connectTransport(
+        data.payload.room_id,
+        data.payload.transportId,
+        data.payload.dtlsParameters
+    )
+}
+
+async function getOnProduce(data) {
+    await mediaServer.produceTransport(
+        data.payload.room_id,
+        data.payload.transportId,
+        data.payload.kind,
+        data.payload.rtpParameters
+    )
 
 }
