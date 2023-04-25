@@ -16,7 +16,7 @@ function Rooms({user, room}) {
                                 <i className="microphone slash icon" />
                             </div>
                             <div className="ui basic icon button">
-                                <i className="hand peace icon" />
+                                <i className="x icon" />
                             </div>
                         </div>
                 </div>

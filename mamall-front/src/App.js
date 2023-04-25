@@ -26,6 +26,7 @@ function App () {
 
 
     let socket = useRef(null);
+    let audioTrack = useRef(null);
     let mediaDevice = useRef(null);
     let sendTransport = useRef(null);
     let receiveTransport = useRef(null);
@@ -57,12 +58,11 @@ function App () {
     async function dispatchMessage(message) {
 
         let messageHandlers = [
-            (x) => {}, callRecv, callReq, joinReq
+            (x) => {}, callRecv, callReq, createMediaTransport, setOnProduce
         ];
 
         let result;
 
-        console.log("room in dispatchMessage ", room);
         if (message.type != undefined) {
             result = await messageHandlers[message.type](message);
         }
@@ -109,7 +109,6 @@ function App () {
             let message = {
                 type: 2,
                 room_id: data.room_id,
-                // sctpCapabilities: mediaDevice.current.sctpCapabilities
             }
 
             socket.current.send(JSON.stringify(message));
@@ -127,103 +126,69 @@ function App () {
                 sctpParameters
         }
     */
-    async function joinReq(data) {
+    async function createMediaTransport(data) {
 
-        const sendTransport = mediaDevice.current.createSendTransport({
+        sendTransport.current = mediaDevice.current.createSendTransport({
             id: data.specs.id,
             iceParameters: data.specs.iceParameters,
             iceCandidates: data.specs.iceCandidates,
             dtlsParameters: data.specs.dtlsParameters,
-            sctpParameters: data.specs.sctpParameters
+            sctpParameters: data.specs.sctpParameters,
+            appData: { roomId: data.room_id }
         })
 
         console.log("create send transport createed");
 
-        // https://www.npmjs.com/package/ws-sync-request
-        sendTransport.on('connect', async ({ dtlsParameters }, callback, errback) =>
+        sendTransport.current.on('connect', ({ dtlsParameters }, callback, errback) =>
             {
-                // Here we must communicate our local parameters to our remote transport.
                 try {
-
                     let message = {
                         type: 3,
-                        transportId: sendTransport.id,
+                        transportId: sendTransport.current.id,
+                        room_id: sendTransport.current.appData.roomId,
                         dtlsParameters,
-                        room_id: data.room_id,
-                        // sctpCapabilities: mediaDevice.current.sctpCapabilities
                     }
-
                     socket.current.send(JSON.stringify(message));
 
-                    // Done in the server, tell our transport.
                     callback();
                 }
                 catch (error) {
-                    // Something was wrong in server side.
                     errback(error);
                 }
             }
         );
 
-    //     // Set transport "produce" event handler.
-    //     sendTransport.on('produce', async ({ kind, rtpParameters, appData }, callback, errback) =>
-    //     {
-    //         // Here we must communicate our local parameters to our remote transport.
-    //         try {
-    //         const { id } = await mySignaling.request(
-    //             'produce',
-    //             { 
-    //             transportId : sendTransport.id,
-    //             kind,
-    //             rtpParameters,
-    //             appData
-    //             });
+        if (audioTrack.current == null) {
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                audioTrack.current = stream.getAudioTracks()[0];
 
-    //         // Done in the server, pass the response to our transport.
-    //         callback({ id });
-    //         }
-    //         catch (error)
-    //         {
-    //         // Something was wrong in server side.
-    //         errback(error);
-    //         }
-    //     });
+                await setOnProduce(data);
+            }
+            catch (err) {
+                console.error(err);
+            }
+        }
+    }
 
-    //     // Set transport "producedata" event handler.
-    //     sendTransport.on(
-    //     'producedata',
-    //     async ({ sctpStreamParameters, label, protocol, appData }, callback, errback) =>
-    //     {
-    //         // Here we must communicate our local parameters to our remote transport.
-    //         try
-    //         {
-    //         const { id } = await mySignaling.request(
-    //             'produceData',
-    //             { 
-    //             transportId : sendTransport.id,
-    //             sctpStreamParameters,
-    //             label,
-    //             protocol,
-    //             appData
-    //             });
+    async function setOnProduce() {
+        sendTransport.current.on('produce', async ({ kind, rtpParameters, appData }, callback, errback) =>
+        {
+            let message = {
+                type: 4,
+                transportId: sendTransport.current.id,
+                room_id: sendTransport.current.appData.roomId,
+                kind,
+                rtpParameters,
+                appData
+            };
+            socket.current.send(JSON.stringify(message));
+            console.log(message);
 
-    //         // Done in the server, pass the response to our transport.
-    //         callback({ id });
-    //         }
-    //         catch (error)
-    //         {
-    //         // Something was wrong in server side.
-    //         errback(error);
-    //         }
-    //     });
-
-    //     const stream = await navigator.mediaDevices.getUserMedia({ video: true });
-    //     const webcamTrack = stream.getVideoTracks()[0];
-    //     const webcamProducer = await sendTransport.produce({ track: webcamTrack });
-
-    //     // Produce data (DataChannel).
-    //     const dataProducer =
-    //     await sendTransport.produceData({ ordered: true, label: 'foo' });
+            callback({ id: sendTransport.current.id });
+        });
+        
+        const audioProducer = await sendTransport.current.produce({ track: audioTrack.current });
     }
 
     async function prepareMediaDevice(rtp) {
@@ -306,11 +271,6 @@ function App () {
         checkToken(config.host + config.validatePath);
         heartBeatMessage();
     }, []);
-
-    const handleClickChangeSocketUrl = useCallback(
-        () => setSocketUrl('wss://localhost:8000/'),
-        []
-    );
 
     const heartBeatMessage = useCallback(() => { 
         setTimeout(heartBeatMessage, 10000);
