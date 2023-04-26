@@ -30,6 +30,7 @@ function App () {
     let mediaDevice = useRef(null);
     let sendTransport = useRef(null);
     let receiveTransport = useRef(null);
+    let audioProducer = useRef(null);
 
     const setSocket = useCallback((sock) => {
         socket.current = sock;
@@ -58,7 +59,8 @@ function App () {
     async function dispatchMessage(message) {
 
         let messageHandlers = [
-            (x) => {}, callRecv, callReq, createMediaTransport, setOnProduce
+            (x) => {}, callRecv, callReq, createMediaTransport, 
+            consumeNewUser, consumeOtherUsers, newConsumer
         ];
 
         let result;
@@ -78,13 +80,25 @@ function App () {
             rtp: rtpCapabilities
         } 
     */
-    async function callRecv(data) {
+    const callRecv = useCallback(async (data) => { 
         if (data.status === 'failed') {
             return;
         }
-        prepareMediaDevice(data.rtp);
+        await prepareMediaDevice(data.rtp);
 
-    }
+        changeRoom({ roomId: data.room_id });
+        console.log("")
+
+        if (socket.current != null) {
+            
+            let message = {
+                type: 2,
+                room_id: data.room_id,
+            }
+
+            socket.current.send(JSON.stringify(message));
+        }
+    });
 
     /*
         data = {
@@ -101,8 +115,6 @@ function App () {
         }
         
         await prepareMediaDevice(data.rtp);
-
-        console.log("roomid from websocket ", data.room_id);
 
         if (socket.current != null) {
             
@@ -129,15 +141,24 @@ function App () {
     async function createMediaTransport(data) {
 
         sendTransport.current = mediaDevice.current.createSendTransport({
-            id: data.specs.id,
-            iceParameters: data.specs.iceParameters,
-            iceCandidates: data.specs.iceCandidates,
-            dtlsParameters: data.specs.dtlsParameters,
-            sctpParameters: data.specs.sctpParameters,
+            id: data.sendSpecs.id,
+            iceParameters: data.sendSpecs.iceParameters,
+            iceCandidates: data.sendSpecs.iceCandidates,
+            dtlsParameters: data.sendSpecs.dtlsParameters,
+            sctpParameters: data.sendSpecs.sctpParameters,
             appData: { roomId: data.room_id }
         })
 
-        console.log("create send transport createed");
+        receiveTransport.current = mediaDevice.current.createRecvTransport({
+            id: data.recvSpecs.id,
+            iceParameters: data.recvSpecs.iceParameters,
+            iceCandidates: data.recvSpecs.iceCandidates,
+            dtlsParameters: data.recvSpecs.dtlsParameters,
+            sctpParameters: data.recvSpecs.sctpParameters,
+            appData: { roomId: data.room_id }
+        })
+
+        console.log("transports createed");
 
         sendTransport.current.on('connect', ({ dtlsParameters }, callback, errback) =>
             {
@@ -158,16 +179,37 @@ function App () {
             }
         );
 
+        receiveTransport.current.on('connect', ({ dtlsParameters }, callback, errback) =>
+            {
+                try {
+                    let message = {
+                        type: 3,
+                        transportId: receiveTransport.current.id,
+                        room_id: receiveTransport.current.appData.roomId,
+                        dtlsParameters,
+                    }
+                    socket.current.send(JSON.stringify(message));
+
+                    callback();
+                }
+                catch (error) {
+                    errback(error);
+                }
+            }
+        );
+
         if (audioTrack.current == null) {
             try {
                 const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
                 audioTrack.current = stream.getAudioTracks()[0];
-
-                await setOnProduce(data);
             }
             catch (err) {
                 console.error(err);
             }
+        }
+
+        if (audioTrack.current != null) {
+            await setOnProduce();
         }
     }
 
@@ -185,10 +227,90 @@ function App () {
             socket.current.send(JSON.stringify(message));
             console.log(message);
 
-            callback({ id: sendTransport.current.id });
+            callback({ id: "" + sendTransport.current.appData.roomId + user.user_id + 1 });
         });
         
-        const audioProducer = await sendTransport.current.produce({ track: audioTrack.current });
+        audioProducer.current = await sendTransport.current.produce({ track: audioTrack.current });
+    }
+
+    // type: 4
+    async function consumeNewUser(data) {
+
+        let message = {
+            type: 5,
+            transportId: receiveTransport.current.id,
+            room_id: data.room_id,
+            producer_id: data.producerId,
+            new_user_id: data.new_user_id,
+            rtpCapabilities: mediaDevice.current.rtpCapabilities,
+        };
+
+        socket.current.send(JSON.stringify(message));
+    }
+
+    // type: 5
+    async function consumeOtherUsers(data) {
+
+        data.users.forEach(user => {
+            let message = {
+                type: 5,
+                transportId: receiveTransport.current.id,
+                room_id: data.room_id,
+                producer_id: user.producer_id,
+                new_user_id: user.user_id,
+                rtpCapabilities: mediaDevice.current.rtpCapabilities,
+            };
+    
+            socket.current.send(JSON.stringify(message));
+        });
+
+    }
+
+    // type: 6
+    async function newConsumer(data) {
+        console.log("new consumer creation");
+        console.log(data);
+        const consumer = await receiveTransport.current.consume(
+        {
+            id            : data.consumer.id,
+            producerId    : data.consumer.producerId,
+            kind          : data.consumer.kind,
+            rtpParameters : data.consumer.rtpParameters
+        });
+
+        // Render the remote video track into a HTML video element.
+        const { track } = consumer;
+
+        let audioElem = document.querySelector("audio");
+        audioElem.srcObject = new MediaStream([ track ]);
+
+        let message = {
+            type: 6,
+            room_id: data.room_id,
+            consumer_id: data.consumer.id,
+        }
+        
+        socket.current.send(JSON.stringify(message));
+    }
+
+    async function setOnConsume() {
+        sendTransport.current.on('produce', async ({ kind, rtpParameters, appData }, callback, errback) =>
+        {
+            let message = {
+                type: 4,
+                transportId: sendTransport.current.id,
+                room_id: sendTransport.current.appData.roomId,
+                kind,
+                rtpParameters,
+                appData
+            };
+            socket.current.send(JSON.stringify(message));
+            console.log(message);
+
+            callback({ id: "" + user.user_id + sendTransport.current.appData.roomId + 1 });
+        });
+        
+        audioProducer.current = await sendTransport.current.produce({ track: audioTrack.current });
     }
 
     async function prepareMediaDevice(rtp) {
