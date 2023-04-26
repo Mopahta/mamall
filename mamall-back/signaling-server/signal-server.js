@@ -32,10 +32,10 @@ let wsServer = new WebSocketServer({
 
 function originIsAllowed(origin) {
     console.log("Origin:", origin);
-    if (origin !== "http://localhost:3000" && origin !== "https://mamont.sytes.net") {
-        return false;
+    if (config.origins.includes(origin)) {
+        return true;
     }
-    return true;
+    return false;
 }
 
 function validateToken(token) {
@@ -123,6 +123,8 @@ wsServer.on('connect', function(connection) {
 
     connection.on('close', function(reasonCode, description) {
         console.log(new Date() + ' Peer ' + connection.remoteAddress + ' disconnected.');
+        let userId = shared.findUserByConnection(connectedUsers, connection);
+        mediaServer.deleteUserTransports(userId);
         connectedUsers = shared.deleteUserByConnection(connectedUsers, connection);
     });
 
@@ -137,7 +139,8 @@ async function dispatchMessage(message) {
 
     let messageHandlers = [
         heartbeatUpdate, callUser, createMediaTransport, 
-        transportConnect, getOnProduce
+        transportConnect, getOnProduce, consumeProducer,
+        resumeConsumer
     ];
 
     let result;
@@ -149,6 +152,7 @@ async function dispatchMessage(message) {
     return result;
 }
 
+// type: 0
 function heartbeatUpdate(data) {
     if (!data.user_id) {
         return;
@@ -164,6 +168,7 @@ function checkConnectionAvailability() {
     console.log(`${new Date()} Connections amount: ${connectedUsers.length}`);
 }
 
+// type: 1
 async function callUser(data) {
     console.log(data);
 
@@ -199,19 +204,24 @@ async function callUser(data) {
     return res;
 }
 
+// type: 2
 async function createMediaTransport(data) {
     if (data.payload.room_id == null) {
         return;
     }
-    let specs = await mediaServer.createMediaTransport(data.payload.room_id)
+
+    let sendSpecs = await mediaServer.createMediaTransport(data.payload.room_id, data.user_id);
+    let recvSpecs = await mediaServer.createMediaTransport(data.payload.room_id, data.user_id);
 
     return {
         type: 3,
         room_id: data.payload.room_id,
-        specs: specs
+        sendSpecs: sendSpecs,
+        recvSpecs: recvSpecs
     }
 }
 
+// type: 3
 async function transportConnect(data) {
     await mediaServer.connectTransport(
         data.payload.room_id,
@@ -220,12 +230,71 @@ async function transportConnect(data) {
     )
 }
 
+// type: 4
 async function getOnProduce(data) {
-    await mediaServer.produceTransport(
+    let producerId = await mediaServer.produceTransport(
         data.payload.room_id,
         data.payload.transportId,
+        data.user_id,
         data.payload.kind,
         data.payload.rtpParameters
     )
 
+    if (producerId != null) {
+        let userIds = mediaServer.getRoomActiveUsers(data.payload.room_id);
+
+        console.log(`active users in room ${data.payload.room_id} ${userIds}`);
+        userIds = userIds.filter(x => x !== data.user_id);
+
+        let res = {
+            type: 5,
+            room_id: data.payload.room_id,
+            users: [],
+        }
+        
+        userIds.forEach(userId => {
+            let user = shared.findUserById(connectedUsers, userId);
+            if (user != null) {
+                let message = {
+                    type: 4,
+                    room_id: data.payload.room_id,
+                    producer_id: producerId,
+                    new_user_id: data.user_id,
+                }
+
+                user.connection.sendUTF(JSON.stringify(message));
+                let userProducer = mediaServer.getUserRoomProducer(data.payload.room_id, userId);
+
+                if (userProducer != null) {
+                    res.users.push({user_id: userId, producer_id: userProducer.id})
+                }
+            }
+        })
+
+        return res;
+    }
+
+    return;
+}
+
+// type: 5
+async function consumeProducer(data) {
+
+    let consumer = await mediaServer.createTransportConsumer(
+        data.payload.room_id, data.user_id, data.payload.new_user_id,
+        data.payload.transportId, data.payload.rtpCapabilities
+    )
+
+    if (consumer != null) {
+        return {
+            type: 6,
+            room_id: data.payload.room_id,
+            consumer: consumer
+        }
+    }
+}
+
+// type: 6
+async function resumeConsumer(data) {
+    mediaServer.resumeConsumer(data.payload.room_id, data.payload.consumer_id);
 }
