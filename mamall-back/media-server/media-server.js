@@ -2,10 +2,23 @@ process.env.DEBUG = "mediasoup*";
 
 const mediasoup = require("mediasoup");
 const { v4: uuidv4 } = require('uuid');
+const { supportedRtpCapabilities } = require('./rtp-supported');
 
 let worker;
 let webRtcServer;
-let routers = [];
+/* 
+[
+    roomRouter: {
+        room_id,
+        router,
+        transports: [],
+        producers: Map(userId, producer),
+        consumers: Map()
+    }
+    ...
+]
+*/
+let broadcasters = [];
 
 
 async function init() {
@@ -46,65 +59,36 @@ async function createRoom(room_id) {
         return;
     }
 
-    let roomRouter = routers.find(x => x.room_id == room_id);
+    let roomRouter = broadcasters.find(x => x.room_id == room_id);
 
     if (roomRouter != null) {
         return roomRouter;
     }
 
     let router = await worker.createRouter({
-        mediaCodecs:
-        [
-            {
-                kind        : "audio",
-                mimeType    : "audio/opus",
-                clockRate   : 48000,
-                channels    : 2
-            },
-            {
-			    kind       : 'audio',
-			    mimeType   : 'audio/multiopus',
-			    clockRate  : 48000,
-			    channels   : 4,
-			    // Quad channel.
-			    parameters :
-			    {
-				    'channel_mapping' : '0,1,2,3',
-				    'num_streams'     : 2,
-				    'coupled_streams' : 2
-			    }
-		    },
-            {
-			    kind                 : 'audio',
-			    mimeType             : 'audio/PCMU',
-			    clockRate            : 8000,
-            },
-            {
-			    kind         : 'audio',
-			    mimeType     : 'audio/ISAC',
-			    clockRate    : 16000,
-		    },
-        ],
+        mediaCodecs: supportedRtpCapabilities.codecs
     })
 
     roomRouter = {
         room_id: room_id,
         router: router,
-        transports: []
+        transports: [],
+        producers: new Map(),
+        consumers: new Map()
     }
 
-    routers.push(roomRouter);
+    broadcasters.push(roomRouter);
 
     return roomRouter;
 }
 
 async function getRoomRouterCapabilities(room_id) {
-    let roomRouter = routers.find(x => x.room_id == room_id);
+    let roomRouter = broadcasters.find(x => x.room_id == room_id);
     return roomRouter.router.rtpCapabilities;
 }
 
-async function createMediaTransport(room_id) {
-    let roomRouter = routers.find(x => x.room_id == room_id);
+async function createMediaTransport(room_id, user_id) {
+    let roomRouter = broadcasters.find(x => x.room_id == room_id);
 
     if (roomRouter == null) {
         roomRouter = await createRoom(room_id);
@@ -118,12 +102,12 @@ async function createMediaTransport(room_id) {
         appData      : { transportId: uuidv4() }
     })
 
-
-    let routerIndex = routers.findIndex(x => x.room_id == room_id);
-    routers[routerIndex].transports.push(
+    let routerIndex = broadcasters.findIndex(x => x.room_id == room_id);
+    broadcasters[routerIndex].transports.push(
         { 
             transportId: webRtcTransport.appData.transportId,
-            webRtcTransport: webRtcTransport
+            userId: user_id,
+            webRtcTransport: webRtcTransport,
         });
 
     return {
@@ -136,43 +120,116 @@ async function createMediaTransport(room_id) {
 }
 
 async function connectTransport(room_id, transportId, dtlsParameters) {
-    let roomRouter = routers.find(x => x.room_id == room_id);
+    let roomRouter = broadcasters.find(x => x.room_id == room_id);
     if (roomRouter != null) {
         let routerTransport = roomRouter.transports.find(x => x.transportId == transportId);
-        console.log(routerTransport);
 
         await routerTransport.webRtcTransport.connect({ dtlsParameters });
     }
 }
 
-async function produceTransport(room_id, transportId, kind, rtpParameters) {
-    let roomRouter = routers.find(x => x.room_id == room_id);
+async function createTransportProducer(room_id, transportId, userId, kind, rtpParameters) {
+    let roomRouter = broadcasters.find(x => x.room_id == room_id);
 
     if (roomRouter != null) {
         let routerTransport = roomRouter.transports.find(x => x.transportId == transportId);
 
-        const producer = await routerTransport.webRtcTransport.produce({ kind, rtpParameters });
+        let producerId = "" + room_id + userId + 1;
+        console.log(producerId);
+        const producer = await routerTransport.webRtcTransport.produce({ id: producerId, kind, rtpParameters });
+        roomRouter.producers.set(userId, producer);
+
+        return producerId;
     }
 
+    return;
+}
+
+function getRoomActiveUsers(room_id) {
+    let roomRouter = broadcasters.find(x => x.room_id == room_id);
+
+    if (roomRouter != null) {
+        return Array.from(roomRouter.producers.keys());
+    }
+    return;
+}
+
+function getUserRoomProducer(room_id, user_id) {
+    let roomRouter = broadcasters.find(x => x.room_id == room_id);
+
+    if (roomRouter != null) {
+        return roomRouter.producers.get(user_id);
+    }
+
+    return;
 }
 
 function checkRouterTransportAvailability() {
-    routers = routers.filter(router => !router.router.closed);
-    routers.forEach(router => {
+    broadcasters = broadcasters.filter(router => !router.router.closed);
+    broadcasters.forEach(router => {
         router.transports = router.transports.filter(transport => !transport.webRtcTransport.closed)
     })
     setTimeout(checkRouterTransportAvailability, 600 * 1000);
 
-    console.log(`${new Date()} Routers amount: ${routers.length}`);
+    console.log(`${new Date()} Routers amount: ${broadcasters.length}`);
+}
+
+// у каждого юзера на на бэке будет 
+// один продусер и консумеров столько же, сколько и участников комнаты - 1
+// сделать получение юзеров комнаты
+async function createTransportConsumer(room_id, user_id, new_user_id, transportId, rtpCapabilities) {
+    let roomRouter = broadcasters.find(x => x.room_id == room_id);
+
+    if (roomRouter != null) {
+        let producerId = "" + room_id + new_user_id + 1;
+        let consumerId = "" + room_id + user_id + new_user_id + 0;
+        if (roomRouter.router.canConsume({ producerId: producerId, rtpCapabilities }))
+        {
+            let routerTransport = roomRouter.transports.find(x => x.transportId == transportId);
+            const consumer = await routerTransport.webRtcTransport.consume({ producerId: producerId, rtpCapabilities, paused: true });
+            roomRouter.consumers.set(consumer.id, consumer);
+
+            return {
+                id: consumer.id,
+                producerId: consumer.producerId,
+                kind: consumer.kind,
+                rtpParameters: consumer.rtpParameters
+            }
+        }
+    }
+}
+
+function resumeConsumer(room_id, consumer_id) {
+    let roomRouter = broadcasters.find(x => x.room_id == room_id);
+
+    if (roomRouter != null) {
+        roomRouter.consumers.get(consumer_id).resume();
+    }
+}
+
+function deleteUserTransports(user_id) {
+    broadcasters.forEach(broadcaster => {
+        for (let i = 0; i < broadcaster.transports.length; i++) {
+            if (broadcaster.transports[i].userId === user_id) {
+                broadcaster.transports[i].webRtcTransport.close();
+            }
+        }
+    })
+
 }
 
 module.exports = {
     init: init,
     stop: stop,
-    routers: routers,
+    broadcasters: broadcasters,
     getRtpCapabilities: getRoomRouterCapabilities,
     createRoom: createRoom,
     createMediaTransport: createMediaTransport,
     connectTransport: connectTransport,
-    produceTransport: produceTransport
+    produceTransport: createTransportProducer,
+    getRoomActiveUsers: getRoomActiveUsers,
+    getUserRoomProducer: getUserRoomProducer,
+    createTransportConsumer: createTransportConsumer,
+    resumeConsumer: resumeConsumer,
+    deleteUserTransports: deleteUserTransports,
 }
