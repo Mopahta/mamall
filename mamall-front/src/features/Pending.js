@@ -27,20 +27,22 @@ function Pending({user}) {
             )
     }, [contactChange])
 
-    const addContact = async (username) => {
+    const modifyContact = async (invitation, method) => {
 
         const data = new FormData();
 
-        data.append("username", username);
-
-        if (!valid.validateUsername(username)) {
-            return;
+        
+        if (method === 'POST') {
+            document.getElementById("call-contact").classList.add("loading");
+            data.append("username", invitation.username);
+        }
+        else {
+            document.getElementById("delete-contact").classList.add("loading");
+            data.append("user_id", invitation.user_id);
         }
 
-        document.getElementById("call-contact").classList.add("loading");
-
         await fetch(`${config.host}/contacts`, { 
-            method: 'POST',
+            method: method,
             body: data,
             credentials: 'include'
         })
@@ -49,13 +51,19 @@ function Pending({user}) {
                 console.log("User not found.");
             }
             else {
+                if (method === 'POST') {
+                    document.getElementById("call-contact").classList.remove("loading");
+                }
+                else {
+                    document.getElementById("delete-contact").classList.remove("loading");
+                }
+                setItems(items.filter(item => item.user_id !== invitation.user_id));
                 return res.json()
             }
         })
         .catch(err => {
             console.log(err);
         })
-        document.getElementById("call-contact").classList.remove("loading");
     }
 
     if (error) {
@@ -78,10 +86,10 @@ function Pending({user}) {
                     <div className="item" key={item.user_id}>
                         <div className="right floated content">
                             <button className="ui icon button" id="call-contact" >
-                                <i className="check icon" onClick={() => addContact(item.username)}></i>
+                                <i className="check icon" onClick={() => modifyContact(item, 'POST')}></i>
                             </button>
                             <button className="ui icon button" id="delete-contact" >
-                                <i className="eye slash icon"></i>
+                                <i className="eye slash icon" onClick={() => modifyContact(item, 'DELETE')}></i>
                             </button>
                         </div>
                         <img className="ui avatar image" src={process.env.PUBLIC_URL + "/" + item.icon_file_id} alt="contact"></img>

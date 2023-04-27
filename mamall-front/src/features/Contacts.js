@@ -47,7 +47,6 @@ function Contacts({user, setRoom, socket}) {
                 console.log("User not found.");
             }
             else {
-                setContactChange(!contactChange);
                 return res.json()
             }
         })
@@ -55,6 +54,35 @@ function Contacts({user, setRoom, socket}) {
             console.log(err);
         })
         document.getElementById("add-contact-button").classList.remove("loading");
+    }
+
+    const deleteContact = async (user_id) => {
+
+        const data = new FormData();
+
+        data.append("user_id", user_id);
+
+        document.getElementById("delete-contact").classList.add("loading");
+
+        await fetch(`${config.host}/contacts`, { 
+            method: 'DELETE',
+            body: data,
+            credentials: 'include'
+        })
+        .then(res => {
+            if (res.status === 404) {
+                console.log("User not found.");
+            }
+            else {
+                setItems(items.filter(item => item.user_id !== user_id));
+                return res.json();
+            }
+        })
+        .catch(err => {
+            console.log(err);
+        })
+        document.getElementById("delete-contact").classList.remove("loading");
+
     }
 
     const callContact = async (contact) => {
@@ -140,7 +168,7 @@ function Contacts({user, setRoom, socket}) {
                                 <i className="phone icon" onClick={() => callContact(item)}></i>
                             </button>
                             <button className="ui icon button" id="delete-contact" >
-                                <i className="trash icon"></i>
+                                <i className="trash icon" onClick={() => deleteContact(item.user_id)}></i>
                             </button>
                         </div>
                         <img className="ui avatar image" src={process.env.PUBLIC_URL + "/" + item.icon_file_id} alt="contact"></img>
