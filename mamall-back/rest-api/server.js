@@ -80,8 +80,8 @@ router.post("/contacts", verifyToken, upload.none(), async function (req, res) {
 
     let userInfo = await db.getUserInfoByUsername(username);
 
-    if (!userInfo) {
-        return res.status(404).json({message: "No such user."})
+    if (userInfo == null) {
+        return res.status(404).json({message: "No such user."});
     }
 
     if (userInfo.user_id === req.user.user_id) {
@@ -100,7 +100,7 @@ router.post("/contacts", verifyToken, upload.none(), async function (req, res) {
         pending_invite: 1
     };
 
-    if (req.body.nickname) {
+    if (req.body.nickname != null) {
         contactInfo.contact_nickname = req.body.nickname;
     }
 
@@ -112,6 +112,9 @@ router.post("/contacts", verifyToken, upload.none(), async function (req, res) {
 
         let room = await db.createRoom({name: "", room_mode_id: 1});
         contactInfo.room_id = room.room_id;
+        if (req.body.nickname) {
+            contactInfo.contact_nickname = req.body.nickname;
+        }
 
         db.addUserToRoom({
             room_id: room.room_id, user_id: req.user.user_id, 
@@ -134,6 +137,48 @@ router.post("/contacts", verifyToken, upload.none(), async function (req, res) {
 
     if (status == '23505') {
         return res.status(401).json({status: "error", description: "Contact already exists"});
+    }
+
+    res.status(201).json({status: "success"}).end();
+})
+
+router.delete("/contacts", verifyToken, upload.none(), async function (req, res) {
+    console.log("contacts delete");
+
+    console.log(req.body);
+    let contact_id = req.body.user_id;
+
+    if (contact_id == null) {
+        return res.status(404).json({message: "No id passed."});
+    }
+
+    let userInfo = await db.getUserInfoById(contact_id);
+    
+    if (userInfo == null) {
+        return res.status(404).json({message: "No such user."});
+    }
+    
+    if (userInfo.user_id === req.user.user_id) {
+        return res.status(403).json({message: "Can't delete yourself from contacts."});
+    }
+
+    let contacts = await db.getPendingContacts(req.user.user_id);
+
+    let pendingExists = contacts.find(x => x.user_id === userInfo.user_id);
+
+    if (pendingExists != null) {
+        await db.deleteContact(userInfo.user_id, req.user.user_id);
+    }
+    else {
+        let contact = await db.getContactInfo(req.user.user_id, userInfo.user_id);
+
+        await db.deleteUserFromRoom({room_id: contact.room_id, user_id: req.user.user_id});
+        await db.deleteUserFromRoom({room_id: contact.room_id, user_id: userInfo.user_id});
+
+        await db.deleteRoom(contact.room_id);
+
+        await db.deleteContact(req.user.user_id, userInfo.user_id);
+        await db.deleteContact(userInfo.user_id, req.user.user_id);
     }
 
     res.status(201).json({status: "success"}).end();
@@ -334,13 +379,8 @@ async function refreshToken(req, res) {
 router.post("/validate", verifyToken, getTokenInfo);
 
 function getTokenInfo(req, res) {
-    // const header = req.headers['authorization']
-
-    // const token = header.split(' ')[1]
-
     const token = req.cookies.token;
 
-    // res.cookie('token', token, {maxAge: 2 * 60 * 60 * 1000, httpOnly: true})
     res.cookie = req.cookie
 
     res.status(200).json({username: req.user.username, user_id: req.user.user_id})

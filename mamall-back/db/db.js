@@ -84,6 +84,10 @@ module.exports = {
 
     addContact: users.addContact,
 
+    getContactInfo: users.getContactInfo,
+
+    deleteContact: users.deleteContact,
+
     updateContactRoom: users.updateContactRoom,
 
     updateUserRefreshToken: users.updateUserRefreshToken,
@@ -121,6 +125,8 @@ module.exports = {
     addUserToRoom: rooms.addUserToRoom,
 
     deleteUserFromRoom: rooms.deleteUserFromRoom,
+    
+    deleteRoom: rooms.deleteRoom,
 
     updateUserRoomInfo: rooms.updateUserRoomInfo,
 

@@ -305,6 +305,34 @@ const config = require('../config/config');
 
     }
 
+    module.exports.deleteRoom = async function(room_id) {
+
+        if (!pool) {
+            console.error("Pool not initialized in db-rooms.")
+            return null
+        }
+
+        let query =  {
+            name: 'delete-room',
+            text: `DELETE FROM  
+                    ${config.pgschema}.rooms
+                    *
+                    WHERE room_id = $1;`,
+            values: [room_id]
+        }
+        
+        try {
+            let res = await pool.query(query);
+        }
+        catch (err) {
+            console.error(err.stack);
+            return false;
+        }
+
+        return true;
+
+    }
+
     module.exports.updateUserRoomInfo = async function(room_user) {
 
         if (!pool) {

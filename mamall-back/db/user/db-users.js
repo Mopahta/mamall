@@ -467,6 +467,63 @@ const config = require('../config/config');
 
     }
 
+
+    module.exports.getContactInfo = async function(userId, contactId) {
+
+        if (!pool) {
+            console.error("Pool not initialized in db-users.")
+            return null
+        }
+
+        let contact;
+
+        let query =  {
+            name: 'get-contact-info',
+            text: `SELECT user_id, contact_id, room_id, pending_invite, contact_nickname, contact_since
+                    FROM 
+                    ${config.pgschema}.contacts
+                    WHERE user_id = $1 AND contact_id = $2;`,
+            values: [userId, contactId]
+        }
+
+        try {
+            let res = await pool.query(query);
+            contact = res.rows[0];
+        }
+        catch (err) {
+            console.error(err.stack);
+        }
+        
+        return contact;
+
+    }
+
+    module.exports.deleteContact = async function(userId, contactId) {
+
+        if (!pool) {
+            console.error("Pool not initialized in db-users.")
+            return null
+        }
+
+        let query =  {
+            name: 'delete-contact',
+            text: `DELETE FROM ${config.pgschema}.contacts 
+                    WHERE user_id = $1 AND contact_id = $2;`,
+            values: [userId, contactId]
+        }
+
+        try {
+            let res = await pool.query(query);
+        }
+        catch (err) {
+            console.error(err.stack);
+            return false;
+        }
+        
+        return true;
+
+    }
+
     module.exports.updateUserRefreshToken = async function(userId, refresh_token) {
 
         if (!pool) {
