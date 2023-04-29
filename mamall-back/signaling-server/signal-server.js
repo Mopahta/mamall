@@ -112,7 +112,6 @@ wsServer.on('connect', function(connection) {
             }
 
             if (res) {
-                console.log(res);
                 connection.sendUTF(JSON.stringify(res));
             }
         }
@@ -123,8 +122,8 @@ wsServer.on('connect', function(connection) {
 
     connection.on('close', function(reasonCode, description) {
         console.log(new Date() + ' Peer ' + connection.remoteAddress + ' disconnected.');
-        let userId = shared.findUserByConnection(connectedUsers, connection);
-        mediaServer.deleteUserTransports(userId);
+        let user = shared.findUserByConnection(connectedUsers, connection);
+        mediaServer.deleteUserTransports(user.user_id);
         connectedUsers = shared.deleteUserByConnection(connectedUsers, connection);
     });
 
@@ -140,7 +139,7 @@ async function dispatchMessage(message) {
     let messageHandlers = [
         heartbeatUpdate, callUser, createMediaTransport, 
         transportConnect, getOnProduce, consumeProducer,
-        resumeConsumer
+        resumeConsumer, handleUserRoomLeave
     ];
 
     let result;
@@ -297,4 +296,33 @@ async function consumeProducer(data) {
 // type: 6
 async function resumeConsumer(data) {
     mediaServer.resumeConsumer(data.payload.room_id, data.payload.consumer_id);
+}
+
+// type: 7
+async function handleUserRoomLeave(data) {
+    console.log("type7 ", data);
+    mediaServer.deleteUserTransports(data.user_id, data.payload.room_id);
+
+    let userIds = mediaServer.getRoomActiveUsers(data.payload.room_id);
+
+    userIds = userIds.filter(x => x !== data.user_id);
+
+    userIds.forEach(userId => {
+        let user = shared.findUserById(connectedUsers, userId);
+        if (user != null) {
+            let message = {
+                type: 8,
+                room_id: data.payload.room_id,
+                user_id: data.user_id,
+            }
+
+            user.connection.sendUTF(JSON.stringify(message));
+
+            // mb clear existing consumer
+        }
+    })
+
+    return {
+        type: 7,
+    }
 }

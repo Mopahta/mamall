@@ -3,6 +3,7 @@ process.env.DEBUG = "mediasoup*";
 const mediasoup = require("mediasoup");
 const { v4: uuidv4 } = require('uuid');
 const { supportedRtpCapabilities } = require('./rtp-supported');
+const config = require('./config/config');
 
 let worker;
 let webRtcServer;
@@ -31,15 +32,15 @@ async function init() {
         [
             {
                 protocol : 'udp',
-                ip       : process.env.MEDIASOUP_LISTEN_IP || '192.168.1.104',
-                announcedIp: process.env.MEDIASOUP_ANNOUNCED_IP,
-                port     : 11111
+                ip       : config.listenIp,
+                announcedIp: config.announcedIp,
+                port     : config.webrtcPort
             },
             {
                 protocol : 'tcp',
-                ip       : process.env.MEDIASOUP_LISTEN_IP || '192.168.1.104',
-                announcedIp: process.env.MEDIASOUP_ANNOUNCED_IP,
-                port     : 11111
+                ip       : config.listenIp,
+                announcedIp: config.announcedIp,
+                port     : config.webrtcPort
             }
         ]
     })
@@ -136,7 +137,14 @@ async function createTransportProducer(room_id, transportId, userId, kind, rtpPa
 
         let producerId = "" + room_id + userId + 1;
         console.log(producerId);
-        const producer = await routerTransport.webRtcTransport.produce({ id: producerId, kind, rtpParameters });
+
+        let producer = roomRouter.producers.get(userId);
+
+        if (producer != null) {
+            producer.close();
+        }
+
+        producer = await routerTransport.webRtcTransport.produce({ id: producerId, kind, rtpParameters });
         roomRouter.producers.set(userId, producer);
 
         return producerId;
@@ -207,14 +215,32 @@ function resumeConsumer(room_id, consumer_id) {
     }
 }
 
-function deleteUserTransports(user_id) {
-    broadcasters.forEach(broadcaster => {
+function deleteUserTransports(user_id, room_id) {
+    console.log("clearing after", user_id, room_id);
+
+    if (room_id != null) {
+        let broadcaster = broadcasters.find(x => x.room_id === room_id);
         for (let i = 0; i < broadcaster.transports.length; i++) {
             if (broadcaster.transports[i].userId === user_id) {
                 broadcaster.transports[i].webRtcTransport.close();
             }
         }
-    })
+        if (broadcaster != null) {
+            let userProducerId = "" + room_id + user_id + 1;
+            broadcaster.producers.delete(userProducerId);
+        }
+    }
+    else {
+        broadcasters.forEach(broadcaster => {
+            for (let i = 0; i < broadcaster.transports.length; i++) {
+                if (broadcaster.transports[i].userId === user_id.user_id) {
+                    broadcaster.transports[i].webRtcTransport.close();
+                }
+            }
+            let userProducerId = "" + broadcaster.room_id + user_id + 1;
+            broadcaster.producers.delete(userProducerId)
+        })
+    }
 
 }
 
