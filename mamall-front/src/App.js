@@ -22,8 +22,34 @@ function App () {
         roomId: 0, roomName: null, roomModeId: 0, description: null
     });
 
-    const changeRoom = useCallback((roomInfo) => setRoom(roomInfo), [setRoom])
+    const changeRoom = useCallback((roomInfo, room_id) => {
+        if (room_id != null) {
+            leaveRoom(room_id);
+        }
+        else {
+            let curRoomId;
+            setRoom(room_id => {
+                curRoomId = room_id;
+                return room_id
+            });
+            if (curRoomId > 0) {
+                leaveRoom(curRoomId);
+            }
+        }
+        setRoom(roomInfo);
+    }, [setRoom])
 
+    const leaveRoom = async (room_id) => {
+        console.log("changing room");
+        console.log(room_id);
+        if (room_id !== 0 && socket.current) {
+            let message = {
+                type: 7,
+                room_id: room_id
+            }
+            socket.current.send(JSON.stringify(message));
+        }
+    }
 
     let socket = useRef(null);
     let audioTrack = useRef(null);
@@ -51,8 +77,6 @@ function App () {
 
     async function handleMessage(message) {
 
-        console.log(message.data);
-
         let res = dispatchMessage(JSON.parse(message.data));
     }
 
@@ -60,7 +84,8 @@ function App () {
 
         let messageHandlers = [
             (x) => {}, callRecv, callReq, createMediaTransport, 
-            consumeNewUser, consumeOtherUsers, newConsumer
+            consumeNewUser, consumeOtherUsers, newConsumer, 
+            roomDisconnect, userDiscFromRoom
         ];
 
         let result;
@@ -87,7 +112,7 @@ function App () {
         await prepareMediaDevice(data.rtp);
 
         changeRoom({ roomId: data.room_id });
-        console.log("")
+        console.log("call received from room", data.room_id)
 
         if (socket.current != null) {
             
@@ -116,6 +141,7 @@ function App () {
         
         await prepareMediaDevice(data.rtp);
 
+        console.log(`call request to ${data.room_id}`);
         if (socket.current != null) {
             
             let message = {
@@ -158,7 +184,7 @@ function App () {
             appData: { roomId: data.room_id }
         })
 
-        console.log("transports createed");
+        console.log("transports created");
 
         sendTransport.current.on('connect', ({ dtlsParameters }, callback, errback) =>
             {
@@ -225,7 +251,7 @@ function App () {
                 appData
             };
             socket.current.send(JSON.stringify(message));
-            console.log(message);
+            console.log("creating producer");
 
             callback({ id: "" + sendTransport.current.appData.roomId + user.user_id + 1 });
         });
@@ -235,6 +261,7 @@ function App () {
 
     // type: 4
     async function consumeNewUser(data) {
+        console.log("consuming new user");
 
         let message = {
             type: 5,
@@ -250,6 +277,7 @@ function App () {
 
     // type: 5
     async function consumeOtherUsers(data) {
+        console.log("consuming other users");
 
         data.users.forEach(user => {
             let message = {
@@ -269,7 +297,6 @@ function App () {
     // type: 6
     async function newConsumer(data) {
         console.log("new consumer creation");
-        console.log(data);
         const consumer = await receiveTransport.current.consume(
         {
             id            : data.consumer.id,
@@ -278,11 +305,11 @@ function App () {
             rtpParameters : data.consumer.rtpParameters
         });
 
-        // Render the remote video track into a HTML video element.
         const { track } = consumer;
 
         let audioElem = document.querySelector("audio");
         audioElem.srcObject = new MediaStream([ track ]);
+        audioElem.play()
 
         let message = {
             type: 6,
@@ -293,28 +320,30 @@ function App () {
         socket.current.send(JSON.stringify(message));
     }
 
-    async function setOnConsume() {
-        sendTransport.current.on('produce', async ({ kind, rtpParameters, appData }, callback, errback) =>
-        {
-            let message = {
-                type: 4,
-                transportId: sendTransport.current.id,
-                room_id: sendTransport.current.appData.roomId,
-                kind,
-                rtpParameters,
-                appData
-            };
-            socket.current.send(JSON.stringify(message));
-            console.log(message);
+    // type: 7
+    async function roomDisconnect(data) {
+        console.log("disconnected from room");
+        if (sendTransport.current != null) {
+            sendTransport.current.close();
+            sendTransport.current = null;
+        }
 
-            callback({ id: "" + user.user_id + sendTransport.current.appData.roomId + 1 });
-        });
-        
-        audioProducer.current = await sendTransport.current.produce({ track: audioTrack.current });
+        if (receiveTransport.current != null) {
+            receiveTransport.current.close();
+            receiveTransport.current = null;
+        }
+        audioTrack.current = null;
+        audioProducer.current = null;
+    }
+
+    // type: 8
+    async function userDiscFromRoom(data) {
+        console.log("user disconnected from room");
     }
 
     async function prepareMediaDevice(rtp) {
         if (!mediaDevice.current.loaded) {
+            console.log("preparing media device");
             var cap = {routerRtpCapabilities: rtp};
             await mediaDevice.current.load(cap);
         }
@@ -391,7 +420,7 @@ function App () {
         }
 
         checkToken(config.host + config.validatePath);
-        heartBeatMessage();
+        // heartBeatMessage();
     }, []);
 
     const heartBeatMessage = useCallback(() => { 

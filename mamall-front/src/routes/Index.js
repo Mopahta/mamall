@@ -19,7 +19,7 @@ const Index = memo(function Index({user, socket, room, changeRoom}) {
             <div className="ten wide computer sixteen wide tablet column">
                 {user.auth?
                 <Routes>
-                    <Route path="/" element={<Room user={user} room={room} />} />
+                    <Route path="/" element={<Room user={user} room={room} socket={socket} setRoom={changeRoom} />} />
                 </Routes>
                 :
                 <Error message={"Sign in to use room."} />

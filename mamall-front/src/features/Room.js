@@ -2,10 +2,19 @@ import { useState } from "react";
 import { useParams } from "react-router-dom";
 import Error from "../common/Error";
 
-function Rooms({user, room, setRoom}) {
+function Rooms({user, room, socket, setRoom}) {
     const [error, setError] = useState(null);
     const [isLoaded, setIsLoaded] = useState(false);
     const [items, setItems] = useState([]);
+
+    const leaveRoom = async () => {
+        setRoom({
+            roomId: 0,
+            roomName: null,
+            roomModeId: 0,
+            description: null
+        }, room.roomId);
+    }
 
     return (
         <div className="ui segment">
@@ -25,7 +34,7 @@ function Rooms({user, room, setRoom}) {
                             <div className="ui basic icon button">
                                 <i className="microphone slash icon" />
                             </div>
-                            <div className="ui basic icon button">
+                            <div className="ui basic icon button" onClick={() => leaveRoom()}>
                                 <i className="x icon" />
                             </div>
                         </div>
