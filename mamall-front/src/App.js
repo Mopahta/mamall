@@ -1,7 +1,7 @@
 import logo from './logo.svg';
 // import './App.css';
 import Header from './common/Header';
-import { useState, useCallback, useEffect, useRef } from 'react';
+import { useState, useCallback, useEffect, useRef, createContext, useMemo } from 'react';
 import { Route, Routes } from 'react-router-dom';
 import { Device } from 'mediasoup-client';
 import config from './config/config';
@@ -9,6 +9,7 @@ import Error from './common/Error';
 import Index from './routes/Index';
 import Login from './routes/Login';
 import Signup from './routes/Signup';
+import { RoomUsersContext } from './context/RoomUsersContext';
 
 function App () {
 
@@ -22,26 +23,19 @@ function App () {
         roomId: 0, roomName: null, roomModeId: 0, description: null
     });
 
-    const changeRoom = useCallback((roomInfo, room_id) => {
-        if (room_id != null) {
-            leaveRoom(room_id);
-        }
-        else {
-            let curRoomId;
-            setRoom(room_id => {
-                curRoomId = room_id;
-                return room_id
-            });
-            if (curRoomId > 0) {
-                leaveRoom(curRoomId);
-            }
-        }
-        setRoom(roomInfo);
-    }, [setRoom])
+    const [roomUsers, setRoomUsers] = useState([]);
+
+    const changeRoomUsers = useCallback((roomUsers) => {
+        setRoomUsers(roomUsers)
+    }, []);
+
+    const usersContext = useMemo(() => ({
+        roomUsers,
+        changeRoomUsers
+    }), [roomUsers, changeRoomUsers]);
 
     const leaveRoom = async (room_id) => {
-        console.log("changing room");
-        console.log(room_id);
+        console.log("changing room from", room_id);
         if (room_id !== 0 && socket.current) {
             let message = {
                 type: 7,
@@ -49,7 +43,28 @@ function App () {
             }
             socket.current.send(JSON.stringify(message));
         }
-    }
+    };
+
+    // const changeRoomUsers = useCallback(())
+
+    const changeRoom = useCallback((roomInfo, room_id) => {
+        if (room_id != null) {
+            leaveRoom(room_id);
+        }
+        else {
+            let curRoomId;
+            console.log("in change room");
+            setRoom(room => {
+                curRoomId = room.roomId;
+                console.log(curRoomId);
+                return room;
+            });
+            if (curRoomId > 0) {
+                leaveRoom(curRoomId);
+            }
+        }
+        setRoom(roomInfo);
+    }, [setRoom]);
 
     let socket = useRef(null);
     let audioTrack = useRef(null);
@@ -85,7 +100,7 @@ function App () {
         let messageHandlers = [
             (x) => {}, callRecv, callReq, createMediaTransport, 
             consumeNewUser, consumeOtherUsers, newConsumer, 
-            roomDisconnect, userDiscFromRoom
+            roomDisconnect, userDiscFromRoom, recvRoomUsers
         ];
 
         let result;
@@ -307,9 +322,16 @@ function App () {
 
         const { track } = consumer;
 
-        let audioElem = document.querySelector("audio");
-        audioElem.srcObject = new MediaStream([ track ]);
-        audioElem.play()
+        var sound = document.createElement('audio');
+        sound.id = 'audio-player-' + data.conn_user_id;
+        sound.controls = 'controls';
+        sound.srcObject = new MediaStream([ track ]);
+        sound.type = 'audio/mpeg';
+
+        // document.getElementById('users-audios').appendChild(sound);
+
+        sound.play()
+        // let audioElem = document.querySelector("audio");
 
         let message = {
             type: 6,
@@ -318,6 +340,15 @@ function App () {
         }
         
         socket.current.send(JSON.stringify(message));
+
+        // message = {
+        //     type: 8,
+        //     room_id: data.roomId
+        // }
+
+        // console.log("get users", message);
+
+        // socket.current.send(JSON.stringify(message));
     }
 
     // type: 7
@@ -334,11 +365,21 @@ function App () {
         }
         audioTrack.current = null;
         audioProducer.current = null;
+        // document.getElementById("audio-player-" + user.user_id).remove();
     }
 
     // type: 8
     async function userDiscFromRoom(data) {
         console.log("user disconnected from room");
+        // document.getElementById("audio-player-" + data.user_id).remove();
+    }
+
+    // type: 9
+    async function recvRoomUsers(data) {
+        console.log("setting room users");
+        console.log(data);
+        console.log(data.users);
+        changeRoomUsers(data.users);
     }
 
     async function prepareMediaDevice(rtp) {
@@ -460,12 +501,14 @@ function App () {
     return (
         <div style={{padding: "50px"}}>    
             <Header user={user} setUser={setUser}/>
+        <RoomUsersContext.Provider value={usersContext}>
         <Routes>
-            <Route index path="/" element={<Index user={user} socket={socket.current} room={room} changeRoom={changeRoom}/>} />
+                <Route index path="/" element={<Index user={user} socket={socket.current} room={room} changeRoom={changeRoom}/>} />
             <Route path="login" element={<Login user={user} setUser={setUser}/>} />
             <Route path="signup" element={<Signup user={user} setUser={setUser}/>} />
             <Route path="*" element={<Error message={"Page not found"} />} />
         </Routes>
+        </RoomUsersContext.Provider>
         <span>The WebSocket is currently {socketStatuses[socketStatus]}</span>
         </div>
     );

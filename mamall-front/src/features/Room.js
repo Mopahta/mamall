@@ -1,8 +1,9 @@
-import { useState } from "react";
+import { useState, memo } from "react";
 import { useParams } from "react-router-dom";
 import Error from "../common/Error";
+import RoomUsers from "./RoomUsers";
 
-function Rooms({user, room, socket, setRoom}) {
+const Rooms = memo(function Rooms({user, room, socket, setRoom}) {
     const [error, setError] = useState(null);
     const [isLoaded, setIsLoaded] = useState(false);
     const [items, setItems] = useState([]);
@@ -22,12 +23,11 @@ function Rooms({user, room, socket, setRoom}) {
 
                 <div className="ui center aligned container" >
                         <div className="ui vertically padded stackable grid">
-                            <div className="ten wide computer sixteen wide tablet column">
+                            <div className="ten wide computer sixteen wide tablet column" id="users-audios">
                                 <Error message={"User video or icon"} />
-                                <audio id="room-audio" controls></audio>
                             </div>
                             <div className="six wide computer sixteen wide tablet column">
-                                <Error message={"Room users"} />
+                                <RoomUsers user={user} room={room} socket={socket}/>
                             </div>
                         </div>
                         <div className="huge ui buttons">
@@ -46,6 +46,6 @@ function Rooms({user, room, socket, setRoom}) {
             }
         </div>
     )
-}
+});
 
 export default Rooms;
