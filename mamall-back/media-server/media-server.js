@@ -1,4 +1,4 @@
-process.env.DEBUG = "mediasoup*";
+process.env.DEBUG = "mediasoup:ERROR*";
 
 const mediasoup = require("mediasoup");
 const { v4: uuidv4 } = require('uuid');

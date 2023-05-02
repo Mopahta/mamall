@@ -123,11 +123,13 @@ wsServer.on('connect', function(connection) {
     connection.on('close', function(reasonCode, description) {
         console.log(new Date() + ' Peer ' + connection.remoteAddress + ' disconnected.');
         let user = shared.findUserByConnection(connectedUsers, connection);
-        mediaServer.deleteUserTransports(user.user_id);
+        if (user) {
+            mediaServer.deleteUserTransports(user.user_id);
+        }
         connectedUsers = shared.deleteUserByConnection(connectedUsers, connection);
     });
 
-    checkConnectionAvailability();
+    // checkConnectionAvailability();
 })
 
 wsServer.on('upgradeError', function(error) {
@@ -139,7 +141,7 @@ async function dispatchMessage(message) {
     let messageHandlers = [
         heartbeatUpdate, callUser, createMediaTransport, 
         transportConnect, getOnProduce, consumeProducer,
-        resumeConsumer, handleUserRoomLeave
+        resumeConsumer, handleUserRoomLeave, getUsersInRoomInfo
     ];
 
     let result;
@@ -287,6 +289,7 @@ async function consumeProducer(data) {
     if (consumer != null) {
         return {
             type: 6,
+            conn_user_id: data.payload.new_user_id,
             room_id: data.payload.room_id,
             consumer: consumer
         }
@@ -318,11 +321,43 @@ async function handleUserRoomLeave(data) {
 
             user.connection.sendUTF(JSON.stringify(message));
 
-            // mb clear existing consumer
+            // mb clear existing consumer 
+            // upd: no need in this
         }
     })
 
     return {
         type: 7,
     }
+}
+
+// type: 8
+async function getUsersInRoomInfo(data) {
+    let userIds;
+    do {
+        console.log("still no users");
+        userIds = mediaServer.getRoomActiveUsers(data.payload.room_id);
+        await sleep(1000);
+    } while (userIds == null || userIds.length === 0);
+
+    console.log(userIds);
+
+    let users = await db.getUsersRoomInfo(data.payload.room_id, userIds);
+
+    users.map(user => {
+        // if (user.user_room_nickname == null) {
+        //     user.user_room_nickname 
+
+        // }
+    })
+
+    console.log("USER INFOS:", users);
+    return {
+        type: 9,
+        users: users,
+    }
+}
+
+async function sleep(msec) {
+    return new Promise(resolve => setTimeout(resolve, msec));
 }

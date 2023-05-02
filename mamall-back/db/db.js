@@ -103,6 +103,9 @@ module.exports = {
     //      3 - away
     setUserOnlineStatus: users.setUserOnlineStatus,
 
+    // @params:
+    //  room id, array of user ids in this room 
+    getUsersRoomInfo: users.getUsersRoomInfo,
 
     // Room-related functions
 
