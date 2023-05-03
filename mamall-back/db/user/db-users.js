@@ -576,12 +576,6 @@ const config = require('../config/config');
                     INNER JOIN
                     ${config.pgschema}.users
                     ON rous.user_id = users.user_id;`,
-// SELECT user_id, username, icon_file_id, user_room_nickname, ro_us.user_role_id, description
-//                     (SELECT user_id, user_room_nickname, user_role_id
-//                     FROM ${config.pgschema}.room_user WHERE room_id = $1 AND user_id = ANY($2::bigint[])
-//                     INNER JOIN
-//                     ${config.pgschema}.users AS usrs
-//                     ON ro_us.user_id = usrs.user_id;`,
             values: [roomId, userIdArr]
         }
         
@@ -596,5 +590,44 @@ const config = require('../config/config');
         }
 
         return users;
+    }
+
+    module.exports.getUserRoomInfo = async function(roomId, userId) {
+
+        if (!pool) {
+            console.error("Pool not initialized in db-users.")
+            return null
+        }
+
+        let user;
+        let query =  {
+            name: 'get-user-room-info',
+            text: `SELECT rous.user_id, username, icon_file_id, user_room_nickname, rous.user_role_id, description
+                    FROM
+                        (SELECT user_id, user_room_nickname, user_role_id, description
+                        FROM ${config.pgschema}.room_user 
+                        INNER JOIN 
+                        ${config.pgschema}.user_roles
+                        ON user_role_id = role_id
+                        WHERE room_id = $1 AND user_id = $2) AS rous
+                    INNER JOIN
+                    ${config.pgschema}.users
+                    ON rous.user_id = users.user_id;`,
+            values: [roomId, userId]
+        }
+        
+        let res;
+        try {
+            res = await pool.query(query);
+                
+            if (res.length > 0) {
+                user = res.rows[0];
+            }
+        }
+        catch (err) {
+            console.error(err.stack);
+        }
+
+        return user;
     }
 }());

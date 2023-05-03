@@ -105,10 +105,14 @@ wsServer.on('connect', function(connection) {
 
             let res;
             if (connectedUser.user_id) {
-                res = await dispatchMessage({
-                    user_id: connectedUser.user_id,
-                    payload: JSON.parse(message.utf8Data)
-                });
+                try {
+                    res = await dispatchMessage({
+                        user_id: connectedUser.user_id,
+                        payload: JSON.parse(message.utf8Data)
+                    });
+                } catch (err) {
+                    console.error(err);
+                }
             }
 
             if (res) {
@@ -245,32 +249,40 @@ async function getOnProduce(data) {
         let userIds = mediaServer.getRoomActiveUsers(data.payload.room_id);
 
         console.log(`active users in room ${data.payload.room_id} ${userIds}`);
-        userIds = userIds.filter(x => x !== data.user_id);
+
+        let users = await db.getUsersRoomInfo(data.payload.room_id, userIds);
 
         let res = {
             type: 5,
             room_id: data.payload.room_id,
             users: [],
         }
+
+        let callerInfo = users.find(user => user.user_id === data.user_id);
         
-        userIds.forEach(userId => {
-            let user = shared.findUserById(connectedUsers, userId);
-            if (user != null) {
-                let message = {
-                    type: 4,
-                    room_id: data.payload.room_id,
-                    producer_id: producerId,
-                    new_user_id: data.user_id,
-                }
-
-                user.connection.sendUTF(JSON.stringify(message));
-                let userProducer = mediaServer.getUserRoomProducer(data.payload.room_id, userId);
-
-                if (userProducer != null) {
-                    res.users.push({user_id: userId, producer_id: userProducer.id})
+        users.forEach(user => {
+            if (user.user_id !== data.user_id) {
+                let userWS = shared.findUserById(connectedUsers, user.user_id);
+                if (userWS != null) {
+                    let message = {
+                        type: 4,
+                        room_id: data.payload.room_id,
+                        producer_id: producerId,
+                        new_user_id: data.user_id,
+                        user: callerInfo
+                    }
+    
+                    userWS.connection.sendUTF(JSON.stringify(message));
+                    let userProducer = mediaServer.getUserRoomProducer(data.payload.room_id, user.user_id);
+    
+                    if (userProducer != null) {
+                        user.producer_id = userProducer.id;
+                    }
                 }
             }
         })
+
+        res.users = users;
 
         return res;
     }

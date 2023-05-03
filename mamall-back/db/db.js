@@ -107,6 +107,10 @@ module.exports = {
     //  room id, array of user ids in this room 
     getUsersRoomInfo: users.getUsersRoomInfo,
 
+    // @params:
+    //  room id, user id in this room 
+    getUserRoomInfo: users.getUserRoomInfo,
+
     // Room-related functions
 
     getAllRooms: rooms.getAllRooms,
