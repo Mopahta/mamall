@@ -8,16 +8,6 @@ function RoomUsers({user, room, socket}) {
 
     useEffect(() => {
         // TODO: custom user icons as audio elements
-            if (socket != null) {
-                let message = {
-                    type: 8,
-                    room_id: room.roomId
-                }
-                console.log("room users message")
-                console.log(message)
-
-                socket.send(JSON.stringify(message));
-            }
     }, []);
 
     const usersContext = useContext(RoomUsersContext);

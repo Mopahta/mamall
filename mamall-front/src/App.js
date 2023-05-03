@@ -29,6 +29,18 @@ function App () {
         setRoomUsers(roomUsers)
     }, []);
 
+    const addRoomUser = useCallback((roomUser) => {
+        setRoomUsers(prevUsers => [...prevUsers, roomUser])
+    }, []);
+
+    const removeRoomUser = useCallback((roomUserId) => {
+        setRoomUsers(prevUsers => prevUsers.filter(user => user.user_id !== roomUserId))
+    }, []);
+
+    const removeAllRoomUsers = useCallback(() => {
+        setRoomUsers([])
+    }, []);
+
     const usersContext = useMemo(() => ({
         roomUsers,
         changeRoomUsers
@@ -288,6 +300,8 @@ function App () {
         };
 
         socket.current.send(JSON.stringify(message));
+
+        addRoomUser(data.user);
     }
 
     // type: 5
@@ -307,6 +321,7 @@ function App () {
             socket.current.send(JSON.stringify(message));
         });
 
+        changeRoomUsers(data.users);
     }
 
     // type: 6
@@ -371,6 +386,7 @@ function App () {
     // type: 8
     async function userDiscFromRoom(data) {
         console.log("user disconnected from room");
+        removeRoomUser(data.user_id);
         // document.getElementById("audio-player-" + data.user_id).remove();
     }
 
