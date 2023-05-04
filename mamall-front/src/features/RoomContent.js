@@ -1,11 +1,7 @@
-import { useEffect, useContext } from "react";
+import { useContext } from "react";
 import { RoomUsersContext } from "../context/RoomUsersContext";
 
-function RoomUsers({user, room, socket}) {
-
-    useEffect(() => {
-        // TODO: custom user icons as audio elements
-    }, []);
+function RoomContent({user, room, socket}) {
 
     const usersContext = useContext(RoomUsersContext);
 
@@ -19,10 +15,10 @@ function RoomUsers({user, room, socket}) {
 
         {usersContext.roomUsers != null?
             usersContext.roomUsers.length !== 0?
-                <div className="ui segment">
-                    <div className="ui list">
-                    {usersContext.roomUsers.map(item => 
-                        <div className="item" key={item.user_id}>
+                <div className="ui relaxed stackable equal width grid">
+                {usersContext.roomUsers.map(item => 
+                    <div className="column">
+                        <div className="ui brown inverted segment" key={item.user_id}>
                             <div className="right floated content">
                                 <button className="ui icon button" id="call-contact" >
                                     <i className="phone icon" onClick={() => vPomoechku(item)}></i>
@@ -37,8 +33,8 @@ function RoomUsers({user, room, socket}) {
                                 <div className="description">{item.user_room_nickname + " " + item.description}</div>
                             </div>
                         </div>
-                    )}
                     </div>
+                )}
                 </div>
                 :
                 <div className="content">
@@ -52,4 +48,5 @@ function RoomUsers({user, room, socket}) {
         </>)
 }
 
-export default RoomUsers;
+export default RoomContent;
+
