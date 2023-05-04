@@ -66,14 +66,7 @@ function App () {
         else {
             let curRoomId;
             console.log("in change room");
-            setRoom(room => {
-                curRoomId = room.roomId;
-                console.log(curRoomId);
-                return room;
-            });
-            if (curRoomId > 0) {
-                leaveRoom(curRoomId);
-            }
+            leaveRoom(curRoomId);
         }
         setRoom(roomInfo);
     }, [setRoom]);
@@ -112,7 +105,7 @@ function App () {
         let messageHandlers = [
             (x) => {}, callRecv, callReq, createMediaTransport, 
             consumeNewUser, consumeOtherUsers, newConsumer, 
-            roomDisconnect, userDiscFromRoom, recvRoomUsers
+            roomDisconnect, userDiscFromRoom,
         ];
 
         let result;
@@ -308,17 +301,19 @@ function App () {
     async function consumeOtherUsers(data) {
         console.log("consuming other users");
 
-        data.users.forEach(user => {
-            let message = {
-                type: 5,
-                transportId: receiveTransport.current.id,
-                room_id: data.room_id,
-                producer_id: user.producer_id,
-                new_user_id: user.user_id,
-                rtpCapabilities: mediaDevice.current.rtpCapabilities,
-            };
-    
-            socket.current.send(JSON.stringify(message));
+        data.users.forEach(userP => {
+            if (userP.user_id !== user.user_id) {
+                let message = {
+                    type: 5,
+                    transportId: receiveTransport.current.id,
+                    room_id: data.room_id,
+                    producer_id: userP.producer_id,
+                    new_user_id: userP.user_id,
+                    rtpCapabilities: mediaDevice.current.rtpCapabilities,
+                };
+        
+                socket.current.send(JSON.stringify(message));
+            }
         });
 
         changeRoomUsers(data.users);
@@ -355,15 +350,6 @@ function App () {
         }
         
         socket.current.send(JSON.stringify(message));
-
-        // message = {
-        //     type: 8,
-        //     room_id: data.roomId
-        // }
-
-        // console.log("get users", message);
-
-        // socket.current.send(JSON.stringify(message));
     }
 
     // type: 7
@@ -383,19 +369,14 @@ function App () {
         // document.getElementById("audio-player-" + user.user_id).remove();
     }
 
+    // TODO:
+    // if the page reloaded after the call can't create producer on back 
+
     // type: 8
     async function userDiscFromRoom(data) {
         console.log("user disconnected from room");
         removeRoomUser(data.user_id);
         // document.getElementById("audio-player-" + data.user_id).remove();
-    }
-
-    // type: 9
-    async function recvRoomUsers(data) {
-        console.log("setting room users");
-        console.log(data);
-        console.log(data.users);
-        changeRoomUsers(data.users);
     }
 
     async function prepareMediaDevice(rtp) {

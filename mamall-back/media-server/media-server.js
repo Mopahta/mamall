@@ -136,14 +136,14 @@ async function createTransportProducer(room_id, transportId, userId, kind, rtpPa
         let routerTransport = roomRouter.transports.find(x => x.transportId == transportId);
 
         let producerId = "" + room_id + userId + 1;
-        console.log(producerId);
-
+        
         let producer = roomRouter.producers.get(userId);
-
+        
         if (producer != null) {
             producer.close();
         }
-
+        
+        console.log("creating transport producer", producerId);
         producer = await routerTransport.webRtcTransport.produce({ id: producerId, kind, rtpParameters });
         roomRouter.producers.set(userId, producer);
 
@@ -218,16 +218,16 @@ function resumeConsumer(room_id, consumer_id) {
 function deleteUserTransports(user_id, room_id) {
     console.log("clearing after", user_id, room_id);
 
+    // TODO: fix consumer connecting to its producer
     if (room_id != null) {
         let broadcaster = broadcasters.find(x => x.room_id === room_id);
         for (let i = 0; i < broadcaster.transports.length; i++) {
-            if (broadcaster.transports[i].userId === user_id) {
+            if (broadcaster.transports[i].userId !== user_id) {
                 broadcaster.transports[i].webRtcTransport.close();
             }
         }
         if (broadcaster != null) {
-            let userProducerId = "" + room_id + user_id + 1;
-            broadcaster.producers.delete(userProducerId);
+            broadcaster.producers.delete(user_id);
         }
     }
     else {
@@ -237,11 +237,21 @@ function deleteUserTransports(user_id, room_id) {
                     broadcaster.transports[i].webRtcTransport.close();
                 }
             }
-            let userProducerId = "" + broadcaster.room_id + user_id + 1;
-            broadcaster.producers.delete(userProducerId)
+            broadcaster.producers.delete(user_id)
         })
     }
 
+}
+
+function findCurrentUserRoomId(user_id) {
+    console.log("current user roomid find", user_id);
+    console.log(broadcasters);
+    for (let i = 0; i < broadcasters.length; i++) {
+    console.log(broadcasters[i].producers);
+        if (broadcasters[i].producers.has(user_id)) {
+            return broadcasters[i].room_id;
+        }
+    }
 }
 
 module.exports = {
@@ -258,4 +268,5 @@ module.exports = {
     createTransportConsumer: createTransportConsumer,
     resumeConsumer: resumeConsumer,
     deleteUserTransports: deleteUserTransports,
+    findCurrentUserRoomId: findCurrentUserRoomId,
 }

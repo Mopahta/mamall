@@ -145,7 +145,7 @@ async function dispatchMessage(message) {
     let messageHandlers = [
         heartbeatUpdate, callUser, createMediaTransport, 
         transportConnect, getOnProduce, consumeProducer,
-        resumeConsumer, handleUserRoomLeave, getUsersInRoomInfo
+        resumeConsumer, handleUserRoomLeave,
     ];
 
     let result;
@@ -316,6 +316,16 @@ async function resumeConsumer(data) {
 // type: 7
 async function handleUserRoomLeave(data) {
     console.log("type7 ", data);
+
+    if (data.payload.room_id == null) {
+        data.payload.room_id = mediaServer.findCurrentUserRoomId(data.user_id);
+        if (data.payload.room_id == null) {
+            console.log("user room not found");
+            return;
+        }
+        console.log("found user room", data.payload.room_id);
+    }
+    
     mediaServer.deleteUserTransports(data.user_id, data.payload.room_id);
 
     let userIds = mediaServer.getRoomActiveUsers(data.payload.room_id);
@@ -340,33 +350,6 @@ async function handleUserRoomLeave(data) {
 
     return {
         type: 7,
-    }
-}
-
-// type: 8
-async function getUsersInRoomInfo(data) {
-    let userIds;
-    do {
-        console.log("still no users");
-        userIds = mediaServer.getRoomActiveUsers(data.payload.room_id);
-        await sleep(1000);
-    } while (userIds == null || userIds.length === 0);
-
-    console.log(userIds);
-
-    let users = await db.getUsersRoomInfo(data.payload.room_id, userIds);
-
-    users.map(user => {
-        // if (user.user_room_nickname == null) {
-        //     user.user_room_nickname 
-
-        // }
-    })
-
-    console.log("USER INFOS:", users);
-    return {
-        type: 9,
-        users: users,
     }
 }
 
