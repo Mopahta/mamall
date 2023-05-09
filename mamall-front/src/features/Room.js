@@ -4,7 +4,7 @@ import Error from "../common/Error";
 import RoomUsers from "./RoomUsers";
 import RoomContent from "./RoomContent";
 
-const Rooms = memo(function Rooms({user, room, socket, setRoom}) {
+const Room = memo(function Room({user, room, socket, setRoom}) {
     const [error, setError] = useState(null);
     const [isLoaded, setIsLoaded] = useState(false);
     const [items, setItems] = useState([]);
@@ -25,7 +25,6 @@ const Rooms = memo(function Rooms({user, room, socket, setRoom}) {
                 <div className="ui container" >
                         <div className="ui vertically padded stackable grid">
                             <div className="ten wide computer sixteen wide tablet column segment" id="users-audios">
-                                {/* <Error message={"User video or icon"} /> */}
                                 <RoomContent user={user} room={room} socket={socket}/>
                             </div>
                             <div className="six wide computer sixteen wide tablet column">
@@ -52,4 +51,4 @@ const Rooms = memo(function Rooms({user, room, socket, setRoom}) {
     )
 });
 
-export default Rooms;
+export default Room;

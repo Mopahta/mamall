@@ -3,8 +3,7 @@ import * as config from "../config/config";
 import Error from "../common/Error";
 import * as valid from "../common/validation";
 
-// TODO: appropiate room change on contact call
-function Contacts({user, setRoom, socket}) {
+function Contacts({user, callRoom}) {
     const [error, setError] = useState(null);
     const [isLoaded, setIsLoaded] = useState(false);
     const [items, setItems] = useState([]);
@@ -87,62 +86,12 @@ function Contacts({user, setRoom, socket}) {
     }
 
     const callContact = async (contact) => {
-        document.getElementById("call-contact").classList.add("loading");
-
-        await fetch(`${config.host}/room?roomId=${contact.room_id}`, { 
-            method: 'GET',
-            credentials: 'include'
-        })
-        .then(res => {
-            if (res.status === 404) {
-                console.log("User not found.");
-            }
-            else {
-                return res.json()
-            }
-        })
-        .then(data => {
-            if (data) {
-                if (data.status === "error") {
-                    console.log(data.message);
-                }
-                else {
-                    console.log("room data", data);
-                    setRoom({
-                        roomId: data.room_id,
-                        roomName: data.name,
-                        roomModeId: data.room_mode_id,
-                        description: data.description
-                    });
-
-                    if (socket != null) {
-                        let message = {
-                            type: 1,
-                            contact_id: contact.user_id,
-                            room_id: data.room_id
-                        }
-
-                        socket.send(JSON.stringify(message));
-                    }
-                }
-            }
-        })
-        .catch(err => {
-            console.log(err);
-        })
-
-        document.getElementById("call-contact").classList.remove("loading");
+        callRoom(contact);
     }
 
     if (error) {
         return (
             <Error message={"Error getting list of contacts."}/>
-        )
-    } else if (!isLoaded) {
-        return (
-        <div className="ui segment ">
-                <div>Loading...</div>
-        </div>
         )
     } else {
         return (
@@ -159,30 +108,38 @@ function Contacts({user, setRoom, socket}) {
                 </div>
             </form>
 
-            {items.length !== 0?
-                <div className="ui very relaxed list">
-                {items.map(item => 
-                    <div className="item" key={item.user_id}>
-                        <div className="right floated content">
-                            <button className="ui icon button" id="call-contact" >
-                                <i className="phone icon" onClick={() => callContact(item)}></i>
-                            </button>
-                            <button className="ui icon button" id="delete-contact" >
-                                <i className="trash icon" onClick={() => deleteContact(item.user_id)}></i>
-                            </button>
-                        </div>
-                        <img className="ui avatar image" src={process.env.PUBLIC_URL + "/" + item.icon_file_id} alt="contact"></img>
-                        <div className="content">
-                            <a className="header">{item.username}</a>
-                            <div className="description">{item.contact_nickname + " " + item.contact_since}</div>
-                        </div>
-                    </div>
-                )}
+            {!isLoaded?
+                <div className="ui segment ">
+                    <div>Loading...</div>
                 </div>
                 :
-                <div className="content">
-                    <div className="header">No contacts added</div>
-                </div>
+                <>
+                {items.length !== 0?
+                    <div className="ui very relaxed list">
+                    {items.map(item => 
+                        <div className="item" key={item.user_id}>
+                            <div className="right floated content">
+                                <button className="ui icon button" id="call-room" >
+                                    <i className="phone icon" onClick={() => callContact(item)}></i>
+                                </button>
+                                <button className="ui icon button" id="delete-contact" >
+                                    <i className="trash icon" onClick={() => deleteContact(item.user_id)}></i>
+                                </button>
+                            </div>
+                            <img className="ui avatar image" src={process.env.PUBLIC_URL + "/" + item.icon_file_id} alt="contact"></img>
+                            <div className="content">
+                                <a className="header">{item.username}</a>
+                                <div className="description">{item.contact_nickname + " " + item.contact_since}</div>
+                            </div>
+                        </div>
+                    )}
+                    </div>
+                    :
+                    <div className="content">
+                        <div className="header">No contacts added</div>
+                    </div>
+                }
+                </>
             }
             </>)
     }

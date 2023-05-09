@@ -6,6 +6,7 @@ function RoomContent({user, room, socket}) {
     const usersContext = useContext(RoomUsersContext);
 
     const vPomoechku = async (user) => {
+        console.log(usersContext.roomUsers);
         console.log(user);
     } 
 
@@ -17,8 +18,8 @@ function RoomContent({user, room, socket}) {
             usersContext.roomUsers.length !== 0?
                 <div className="ui relaxed stackable equal width grid">
                 {usersContext.roomUsers.map(item => 
-                    <div className="column">
-                        <div className="ui brown inverted segment" key={item.user_id}>
+                    <div className="column" key={item.user_id}>
+                        <div className="ui brown inverted segment">
                             <div className="right floated content">
                                 <button className="ui icon button" id="call-contact" >
                                     <i className="phone icon" onClick={() => vPomoechku(item)}></i>

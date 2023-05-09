@@ -1,6 +1,8 @@
-import { memo, useState } from "react";
+import { memo, useCallback, useState } from "react";
+import * as config from "../config/config";
 import Contacts from "./Contacts";
 import Pending from "./Pending";
+import Rooms from "./Rooms";
 
 const UserInteraction = memo(function UserInteraction({user, setRoom, socket}) {
 
@@ -16,15 +18,74 @@ const UserInteraction = memo(function UserInteraction({user, setRoom, socket}) {
         let chosenOption = props.chosenOption;
 
         if (chosenOption === chosen.contacts) {
-            return <Contacts user={props.user} setRoom={setRoom} socket={socket} />;
+            return <Contacts user={props.user} callRoom={callRoom} />;
         }
         else if (chosenOption === chosen.rooms) {
-
+            return <Rooms user={props.user} callRoom={callRoom} />;
         }
         else if (chosenOption === chosen.pending) {
             return <Pending user={props.user} />
         }
     }
+
+    const callRoom = useCallback(async (item) => {
+
+        document.getElementById("call-room").classList.add("loading");
+
+        await fetch(`${config.host}/room?roomId=${item.room_id}`, { 
+            method: 'GET',
+            credentials: 'include'
+        })
+        .then(res => {
+            if (res.status === 404) {
+                console.log("User not found.");
+            }
+            else {
+                return res.json()
+            }
+        })
+        .then(data => {
+            if (data) {
+                if (data.status === "error") {
+                    console.log(data.message);
+                }
+                else {
+                    console.log("room data", data);
+                    setRoom({
+                        roomId: data.room_id,
+                        roomName: data.name,
+                        roomModeId: data.room_mode_id,
+                        description: data.description
+                    });
+
+                    if (socket != null) {
+                        let message;
+                        console.log(item);
+                        if (item.user_id != null) {
+                            message = {
+                                type: 1,
+                                contact_id: item.user_id,
+                                room_id: data.room_id
+                            }
+                        }
+                        else {
+                            message = {
+                                type: 1,
+                                room_id: data.room_id
+                            }
+                        }
+
+                        socket.send(JSON.stringify(message));
+                    }
+                }
+            }
+        })
+        .catch(err => {
+            console.log(err);
+        })
+
+        document.getElementById("call-room").classList.remove("loading");
+    }, [setRoom, socket]);
 
     const changeOption = async (option) => {
         choose(option);
