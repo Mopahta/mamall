@@ -145,4 +145,8 @@ module.exports = {
 
     getUserRooms: rooms.getUserRooms,
 
+    getUserRoomInfo: rooms.getUserRoomsInfo,
+
+    getUserPublicRoomsInfo: rooms.getUserPublicRoomsInfo,
+
 };

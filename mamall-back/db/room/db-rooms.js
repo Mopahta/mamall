@@ -101,7 +101,7 @@ const config = require('../config/config');
         let users;
         let query =  {
             name: 'get-room-users',
-            text: `SELECT room_id, room_user.user_id, user_room_nickname, user_role_id, username
+            text: `SELECT room_id, room_user.user_id, user_room_nickname, room_user.user_role_id, username
                     FROM
                         (SELECT 
                             room_id, user_id, user_room_nickname, user_role_id
@@ -469,6 +469,85 @@ const config = require('../config/config');
                         INNER JOIN 
                         ${config.pgschema}.user_roles AS roles
                         ON room_user.user_role_id = roles.role_id;`,
+            values: [user_id]
+        }
+        
+        let res;
+        try {
+            res = await pool.query(query);
+
+            users = res.rows;
+        }
+        catch (err) {
+            console.error(err.stack);
+        }
+
+        return users;
+    }
+
+    module.exports.getUserRoomsInfo = async function(user_id) {
+
+        if (!pool) {
+            console.error("Pool not initialized in db-rooms.")
+            return null
+        }
+
+        let users;
+        let query =  {
+            name: 'get-user-rooms-info',
+            text: `SELECT rooms.room_id, rooms.name, room_mode_id, description
+                    FROM
+                        (SELECT 
+                            room_id, user_id, user_room_nickname, user_role_id
+                            FROM 
+                            ${config.pgschema}.room_user 
+                            WHERE user_id = $1) AS room_user
+                        INNER JOIN 
+                        ${config.pgschema}.rooms AS rooms
+                        ON room_user.room_id = rooms.room_id
+                        INNER JOIN 
+                        ${config.pgschema}.room_modes AS room_mode
+                        ON rooms.room_mode_id = room_mode.mode_id`,
+            values: [user_id]
+        }
+        
+        let res;
+        try {
+            res = await pool.query(query);
+
+            users = res.rows;
+        }
+        catch (err) {
+            console.error(err.stack);
+        }
+
+        return users;
+    }
+
+    module.exports.getUserPublicRoomsInfo = async function(user_id) {
+
+        if (!pool) {
+            console.error("Pool not initialized in db-rooms.")
+            return null
+        }
+
+        let users;
+        let query =  {
+            name: 'get-user-rooms-info',
+            text: `SELECT rooms.room_id, rooms.name, room_mode_id, description
+                    FROM
+                        (SELECT 
+                            room_id, user_id, user_room_nickname, user_role_id
+                            FROM 
+                            ${config.pgschema}.room_user 
+                            WHERE user_id = $1) AS room_user
+                        INNER JOIN 
+                        ${config.pgschema}.rooms AS rooms
+                        ON room_user.room_id = rooms.room_id
+                        INNER JOIN 
+                        ${config.pgschema}.room_modes AS room_mode
+                        ON rooms.room_mode_id = room_mode.mode_id
+                        WHERE rooms.room_mode_id <> 1`,
             values: [user_id]
         }
         

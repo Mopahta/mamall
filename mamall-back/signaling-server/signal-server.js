@@ -129,6 +129,7 @@ wsServer.on('connect', function(connection) {
         let user = shared.findUserByConnection(connectedUsers, connection);
         if (user) {
             mediaServer.deleteUserTransports(user.user_id);
+            handleUserRoomLeave({user_id: user.user_id, payload: {}});
         }
         connectedUsers = shared.deleteUserByConnection(connectedUsers, connection);
     });
@@ -143,7 +144,7 @@ wsServer.on('upgradeError', function(error) {
 async function dispatchMessage(message) {
 
     let messageHandlers = [
-        heartbeatUpdate, callUser, createMediaTransport, 
+        heartbeatUpdate, callRoom, createMediaTransport, 
         transportConnect, getOnProduce, consumeProducer,
         resumeConsumer, handleUserRoomLeave,
     ];
@@ -174,13 +175,33 @@ function checkConnectionAvailability() {
 }
 
 // type: 1
-async function callUser(data) {
+async function callRoom(data) {
     console.log(data);
 
     let res = {
         type: 2,
         status: 'failed',
         message: 'User is not available.'
+    }
+
+    if (data.payload.contact_id == null) {
+
+        let roomUsers = await db.getRoomUsers(data.payload.room_id);
+
+        if (roomUsers.length === 0) {
+            return res;
+        }
+
+        await mediaServer.createRoom(data.payload.room_id);
+
+        let rtpCapabilities = await mediaServer.getRtpCapabilities(data.payload.room_id);
+
+        res.status = 'ok';
+        res.message = 'joined room';
+        res.room_id = data.payload.room_id;
+        res.rtp = rtpCapabilities;
+
+        return res;
     }
 
     let user = shared.findUserById(connectedUsers, data.payload.contact_id);
@@ -320,7 +341,7 @@ async function handleUserRoomLeave(data) {
     if (data.payload.room_id == null) {
         data.payload.room_id = mediaServer.findCurrentUserRoomId(data.user_id);
         if (data.payload.room_id == null) {
-            console.log("user room not found");
+            console.log(`user ${data.user_id} room not found`);
             return;
         }
         console.log("found user room", data.payload.room_id);
@@ -329,6 +350,13 @@ async function handleUserRoomLeave(data) {
     mediaServer.deleteUserTransports(data.user_id, data.payload.room_id);
 
     let userIds = mediaServer.getRoomActiveUsers(data.payload.room_id);
+
+    if (userIds.length === 0) {
+        mediaServer.closeRoom(data.payload.room_id);
+        return {
+            type: 7,
+        }
+    }
 
     userIds = userIds.filter(x => x !== data.user_id);
 

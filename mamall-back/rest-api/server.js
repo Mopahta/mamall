@@ -220,6 +220,14 @@ router.get("/room", verifyToken, upload.none(), async function (req, res) {
     res.status(200).json(room);
 })
 
+router.get("/rooms", verifyToken, upload.none(), async function (req, res) {
+    console.log("get user rooms");
+
+    let userRooms = await db.getUserPublicRoomsInfo(req.user.user_id);
+
+    res.status(200).json(userRooms);
+})
+
 router.post("/login", upload.none(), async function(req, res) {
     console.log("post /login")
 
