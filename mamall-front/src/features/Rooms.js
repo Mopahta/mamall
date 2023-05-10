@@ -27,6 +27,33 @@ function Rooms({user, callRoom}) {
     }, [contactChange])
 
     const createRoom = async (event) => {
+        event.preventDefault();
+
+        const data = new FormData(event.target);
+
+        if (document.getElementById("roomname").value === "" && !valid.validateRoomName(document.getElementById("roomname"))) {
+            return;
+        }
+
+        document.getElementById("create-room-button").classList.add("loading");
+
+        await fetch(`${config.host}/room/create`, { 
+            method: 'POST',
+            body: data,
+            credentials: 'include'
+        })
+        .then(res => {
+            if (res.status === 418) {
+                console.log("Room name is not passed");
+            }
+            else {
+                return res.json()
+            }
+        })
+        .catch(err => {
+            console.log(err);
+        })
+        document.getElementById("create-room-button").classList.remove("loading");
     }
 
 // TODO: add users to created room (room_id=8)
@@ -51,8 +78,8 @@ function Rooms({user, callRoom}) {
                 <div className="grouped fields" style={{ display: "flex" }}>
                     <div className="field" style={{ flex: "1 2 auto" }}>
                         <div className="ui mini action input" >
-                            <input type="text" id="username" name="username" placeholder="Create room" />
-                            <button className="ui basic button" id="add-contact-button" type="submit">Create</button>
+                            <input type="text" id="roomname" name="roomname" placeholder="Create room" />
+                            <button className="ui basic button" id="create-room-button" type="submit">Create</button>
                         </div>
                     </div>
                 </div>

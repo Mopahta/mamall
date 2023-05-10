@@ -21,12 +21,6 @@ function RoomContent({user, room, socket}) {
                     <div className="column" key={item.user_id}>
                         <div className="ui brown inverted segment">
                             <div className="right floated content">
-                                <button className="ui icon button" id="call-contact" >
-                                    <i className="phone icon" onClick={() => vPomoechku(item)}></i>
-                                </button>
-                                <button className="ui icon button" id="delete-contact" >
-                                    <i className="trash icon" onClick={() => vPomoechku(item)}></i>
-                                </button>
                             </div>
                             <img className="ui avatar image" src={process.env.PUBLIC_URL + "/" + item.icon_file_id} alt="room-user"></img>
                             <div className="content">
