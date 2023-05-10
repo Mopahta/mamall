@@ -1,5 +1,4 @@
 const config = require('../config/config');
-
 (function() {
     let pool;
 
@@ -16,7 +15,7 @@ const config = require('../config/config');
 
         let rooms = [];
         let query = `SELECT room_id, name, room_mode_id 
-                    FROM ${config.pgschema}.rooms`;
+                    FROM ${config.pgschema}.rooms;`;
         
         let res;
         try {
@@ -43,7 +42,7 @@ const config = require('../config/config');
                     ${config.pgschema}.rooms AS room
                     INNER JOIN 
                     ${config.pgschema}.room_modes AS room_mode
-                    ON room.room_mode_id = room_modes.mode_id`;
+                    ON room.room_mode_id = room_mode.mode_id;`;
         
         let res;
         try {
@@ -57,7 +56,7 @@ const config = require('../config/config');
         return rooms;
     }
 
-    module.exports.getRoomInfoById = async function(id) {
+    module.exports.getRoomInfoById = async function(roomId) {
 
         if (!pool) {
             console.error("Pool not initialized in db-rooms.")
@@ -72,9 +71,9 @@ const config = require('../config/config');
                     ${config.pgschema}.rooms AS room
                     INNER JOIN 
                     ${config.pgschema}.room_modes AS room_mode
-                    ON room.room_mode_id = room_modes.mode_id 
-                    WHERE room_id = $1`,
-            values: [id]
+                    ON room.room_mode_id = room_mode.mode_id 
+                    WHERE room_id = $1;`,
+            values: [roomId]
         }
         
         let res;
@@ -102,7 +101,7 @@ const config = require('../config/config');
         let users;
         let query =  {
             name: 'get-room-users',
-            text: `SELECT room_id, room_user.user_id, user_room_nickname, user_role_id, username
+            text: `SELECT room_id, room_user.user_id, user_room_nickname, room_user.user_role_id, username
                     FROM
                         (SELECT 
                             room_id, user_id, user_room_nickname, user_role_id
@@ -113,8 +112,8 @@ const config = require('../config/config');
                         ${config.pgschema}.users AS users
                         ON room_user.user_id = users.user_id
                         INNER JOIN 
-                        ${config.pgschema}.user_room_roles AS roles
-                        ON room_user.user_role_id = role.role_id;`,
+                        ${config.pgschema}.user_roles AS roles
+                        ON room_user.user_role_id = roles.role_id;`,
             values: [room_id]
         }
         
@@ -142,7 +141,7 @@ const config = require('../config/config');
         let query =  {
             name: 'set-room-mode',
             text: `UPDATE ${config.pgschema}.room_modes
-                    SET (room_mode_id) = ($1)
+                    SET room_mode_id = $1
                     WHERE room_id = $2;`,
             values: [mode_id, room_id]
         }
@@ -196,24 +195,24 @@ const config = require('../config/config');
             return null
         }
 
-        let user_room_roles = [];
+        let user_roles = [];
         let query =  {
             text: `SELECT role_id, description
                     FROM 
-                    ${config.pgschema}.user_room_roles`,
+                    ${config.pgschema}.user_roles`,
         }
     
         let res;
         try {
             res = await pool.query(query);
 
-            user_room_roles = res.rows
+            user_roles = res.rows
         }
         catch (err) {
             console.error(err.stack);
         }
 
-        return user_room_roles;
+        return user_roles;
     }
 
     module.exports.getRoleValue = async function(role_id) {
@@ -223,13 +222,13 @@ const config = require('../config/config');
             return null
         }
 
-        let user_room_roles;
+        let user_roles;
         let query =  {
             name: 'get-role-value',
             text: `SELECT role_id, role_value
                     FROM 
-                    ${config.pgschema}.user_room_roles
-                    WHERE role_id = $1`,
+                    ${config.pgschema}.user_roles
+                    WHERE role_id = $1;`,
             values: [role_id]
         }
     
@@ -238,14 +237,14 @@ const config = require('../config/config');
             res = await pool.query(query);
 
             if (res.rows.length >= 1) {
-                user_room_roles = res.rows[0]
+                user_roles = res.rows[0]
             }
         }
         catch (err) {
             console.error(err.stack);
         }
 
-        return user_room_roles;
+        return user_roles;
     }
 
     module.exports.addUserToRoom = async function(room_user) {
@@ -271,14 +270,14 @@ const config = require('../config/config');
         }
         catch (err) {
             console.error(err.stack);
-            return false;
+            return err.code;
         }
 
         return true;
 
     }
 
-    module.exports.deleteUserFromRoom = async function(room_user) {
+    module.exports.deleteUserFromRoom = async function(room_id, user_id) {
 
         if (!pool) {
             console.error("Pool not initialized in db-rooms.")
@@ -291,7 +290,35 @@ const config = require('../config/config');
                     ${config.pgschema}.room_user 
                     *
                     WHERE room_id = $1 AND user_id = $2;`,
-            values: [room_user.room_id, room_user.user_id]
+            values: [room_id, user_id]
+        }
+        
+        try {
+            let res = await pool.query(query);
+        }
+        catch (err) {
+            console.error(err.stack);
+            return false;
+        }
+
+        return true;
+
+    }
+
+    module.exports.deleteRoom = async function(room_id) {
+
+        if (!pool) {
+            console.error("Pool not initialized in db-rooms.")
+            return null
+        }
+
+        let query =  {
+            name: 'delete-room',
+            text: `DELETE FROM  
+                    ${config.pgschema}.rooms
+                    *
+                    WHERE room_id = $1;`,
+            values: [room_id]
         }
         
         try {
@@ -333,6 +360,62 @@ const config = require('../config/config');
         return true;
 
     }
+
+    module.exports.updateUserRoomNickname = async function(room_user) {
+
+        if (!pool) {
+            console.error("Pool not initialized in db-rooms.")
+            return null
+        }
+
+        let query =  {
+            name: 'update-user-room-nickname',
+            text: `UPDATE ${config.pgschema}.room_user 
+                    SET user_room_nickname = $1
+                    WHERE room_id = $2 AND user_id = $3;`,
+            values: [room_user.user_room_nickname,
+                room_user.room_id, room_user.user_id]
+        }
+
+        try {
+            let res = await pool.query(query);
+        }
+        catch (err) {
+            console.error(err.stack);
+            return false;
+        }
+        
+        return true;
+
+    }
+
+    module.exports.updateUserRoomRole = async function(room_user) {
+
+        if (!pool) {
+            console.error("Pool not initialized in db-rooms.")
+            return null
+        }
+
+        let query =  {
+            name: 'update-user-room-role',
+            text: `UPDATE ${config.pgschema}.room_user 
+                    SET user_role_id = $1
+                    WHERE room_id = $2 AND user_id = $3;`,
+            values: [room_user.user_role_id,
+                room_user.room_id, room_user.user_id]
+        }
+
+        try {
+            let res = await pool.query(query);
+        }
+        catch (err) {
+            console.error(err.stack);
+            return false;
+        }
+        
+        return true;
+
+    }
     
     module.exports.createRoom = async function(roomInfo) {
 
@@ -347,19 +430,19 @@ const config = require('../config/config');
                     ${config.pgschema}.rooms 
                     (name, room_mode_id) 
                     VALUES 
-                    ($1, $2);`,
+                    ($1, $2)
+                    RETURNING room_id;`,
             values: [roomInfo.name, roomInfo.room_mode_id]
         }
         
         try {
             let res = await pool.query(query);
+            return res.rows[0];
         }
         catch (err) {
             console.error(err.stack);
-            return false;
+            return 0;
         }
-
-        return true;
 
     }
 
@@ -373,7 +456,7 @@ const config = require('../config/config');
         let users;
         let query =  {
             name: 'get-user-rooms',
-            text: `SELECT room_id, room_user.user_id, user_room_nickname, user_role_id, username
+            text: `SELECT room_id, room_user.user_id, user_room_nickname, room_user.user_role_id, username
                     FROM
                         (SELECT 
                             room_id, user_id, user_room_nickname, user_role_id
@@ -384,8 +467,87 @@ const config = require('../config/config');
                         ${config.pgschema}.users AS users
                         ON room_user.user_id = users.user_id
                         INNER JOIN 
-                        ${config.pgschema}.user_room_roles AS roles
-                        ON room_user.user_role_id = role.role_id;`,
+                        ${config.pgschema}.user_roles AS roles
+                        ON room_user.user_role_id = roles.role_id;`,
+            values: [user_id]
+        }
+        
+        let res;
+        try {
+            res = await pool.query(query);
+
+            users = res.rows;
+        }
+        catch (err) {
+            console.error(err.stack);
+        }
+
+        return users;
+    }
+
+    module.exports.getUserRoomsInfo = async function(user_id) {
+
+        if (!pool) {
+            console.error("Pool not initialized in db-rooms.")
+            return null
+        }
+
+        let users;
+        let query =  {
+            name: 'get-user-rooms-info',
+            text: `SELECT rooms.room_id, rooms.name, room_mode_id, description
+                    FROM
+                        (SELECT 
+                            room_id, user_id, user_room_nickname, user_role_id
+                            FROM 
+                            ${config.pgschema}.room_user 
+                            WHERE user_id = $1) AS room_user
+                        INNER JOIN 
+                        ${config.pgschema}.rooms AS rooms
+                        ON room_user.room_id = rooms.room_id
+                        INNER JOIN 
+                        ${config.pgschema}.room_modes AS room_mode
+                        ON rooms.room_mode_id = room_mode.mode_id`,
+            values: [user_id]
+        }
+        
+        let res;
+        try {
+            res = await pool.query(query);
+
+            users = res.rows;
+        }
+        catch (err) {
+            console.error(err.stack);
+        }
+
+        return users;
+    }
+
+    module.exports.getUserPublicRoomsInfo = async function(user_id) {
+
+        if (!pool) {
+            console.error("Pool not initialized in db-rooms.")
+            return null
+        }
+
+        let users;
+        let query =  {
+            name: 'get-user-rooms-info',
+            text: `SELECT rooms.room_id, rooms.name, room_mode_id, description
+                    FROM
+                        (SELECT 
+                            room_id, user_id, user_room_nickname, user_role_id
+                            FROM 
+                            ${config.pgschema}.room_user 
+                            WHERE user_id = $1) AS room_user
+                        INNER JOIN 
+                        ${config.pgschema}.rooms AS rooms
+                        ON room_user.room_id = rooms.room_id
+                        INNER JOIN 
+                        ${config.pgschema}.room_modes AS room_mode
+                        ON rooms.room_mode_id = room_mode.mode_id
+                        WHERE rooms.room_mode_id <> 1`,
             values: [user_id]
         }
         

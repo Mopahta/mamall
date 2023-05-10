@@ -12,6 +12,18 @@ CREATE TABLE IF NOT EXISTS mamall.online_statuses (
 
 
 -- -----------------------------------------------------
+-- Table mamall.user_roles
+-- -----------------------------------------------------
+DROP TABLE IF EXISTS mamall.user_roles ;
+
+CREATE TABLE IF NOT EXISTS mamall.user_roles (
+  role_id SERIAL,
+  description VARCHAR(60) NULL,
+  role_value INT NULL,
+  PRIMARY KEY (role_id));
+
+
+-- -----------------------------------------------------
 -- Table mamall.users
 -- -----------------------------------------------------
 DROP TABLE IF EXISTS mamall.users ;
@@ -20,40 +32,23 @@ CREATE TABLE IF NOT EXISTS mamall.users (
   user_id BIGSERIAL,
   username VARCHAR(45) NOT NULL UNIQUE,
   password VARCHAR(65) NOT NULL,
+  refresh_token VARCHAR(200) NULL,
   email VARCHAR(45) NULL,
   date_registered TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   online_status_id INT NOT NULL DEFAULT 1,
   icon_file_id INT NULL,
+  user_role_id INT NOT NULL DEFAULT 1,
   PRIMARY KEY (user_id),
   CONSTRAINT fk_users_table11
     FOREIGN KEY (online_status_id)
     REFERENCES mamall.online_statuses (online_status_id)
     ON DELETE RESTRICT
-    ON UPDATE CASCADE);
-
-
--- -----------------------------------------------------
--- Table mamall.contacts
--- -----------------------------------------------------
-DROP TABLE IF EXISTS mamall.contacts ;
-
-CREATE TABLE IF NOT EXISTS mamall.contacts (
-  user_id BIGINT NOT NULL,
-  contact_id BIGINT NOT NULL,
-  contact_nickname VARCHAR(45) NULL,
-  contact_since TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP,
-  CHECK (user_id <> contact_id),
-  PRIMARY KEY (user_id, contact_id),
-  CONSTRAINT fk_contacts_users
-    FOREIGN KEY (user_id)
-    REFERENCES mamall.users (user_id)
-    ON DELETE RESTRICT
     ON UPDATE CASCADE,
-  CONSTRAINT fk_contacts_users1
-    FOREIGN KEY (contact_id)
-    REFERENCES mamall.users (user_id)
-    ON DELETE CASCADE
-    ON UPDATE CASCADE);
+  CONSTRAINT fk_users_user_roles
+    FOREIGN KEY (user_role_id)
+    REFERENCES mamall.user_roles (role_id)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION);
 
 
 -- -----------------------------------------------------
@@ -85,6 +80,37 @@ CREATE TABLE IF NOT EXISTS mamall.rooms (
 
 
 -- -----------------------------------------------------
+-- Table mamall.contacts
+-- -----------------------------------------------------
+DROP TABLE IF EXISTS mamall.contacts ;
+
+CREATE TABLE IF NOT EXISTS mamall.contacts (
+  user_id BIGINT NOT NULL,
+  contact_id BIGINT NOT NULL,
+  room_id BIGINT NULL,
+  pending_invite SMALLINT NULL DEFAULT 1,
+  contact_nickname VARCHAR(45) NULL,
+  contact_since TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP,
+  CHECK (user_id <> contact_id),
+  PRIMARY KEY (user_id, contact_id),
+  CONSTRAINT fk_contacts_rooms1
+    FOREIGN KEY (room_id)
+    REFERENCES mamall.rooms (room_id)
+    ON DELETE SET NULL
+    ON UPDATE CASCADE,
+  CONSTRAINT fk_contacts_users
+    FOREIGN KEY (user_id)
+    REFERENCES mamall.users (user_id)
+    ON DELETE RESTRICT
+    ON UPDATE CASCADE,
+  CONSTRAINT fk_contacts_users1
+    FOREIGN KEY (contact_id)
+    REFERENCES mamall.users (user_id)
+    ON DELETE CASCADE
+    ON UPDATE CASCADE);
+
+
+-- -----------------------------------------------------
 -- Table mamall.acc_states
 -- -----------------------------------------------------
 DROP TABLE IF EXISTS mamall.acc_states ;
@@ -93,18 +119,6 @@ CREATE TABLE IF NOT EXISTS mamall.acc_states (
   acc_state_id SERIAL,
   description VARCHAR(60) NULL,
   PRIMARY KEY (acc_state_id));
-
-
--- -----------------------------------------------------
--- Table mamall.user_room_roles
--- -----------------------------------------------------
-DROP TABLE IF EXISTS mamall.user_room_roles ;
-
-CREATE TABLE IF NOT EXISTS mamall.user_room_roles (
-  role_id SERIAL;
-  description VARCHAR(60) NULL,
-  role_value INT NULL,
-  PRIMARY KEY (role_id));
 
 
 -- -----------------------------------------------------
@@ -128,9 +142,9 @@ CREATE TABLE IF NOT EXISTS mamall.room_user (
     REFERENCES mamall.users (user_id)
     ON DELETE RESTRICT
     ON UPDATE CASCADE,
-  CONSTRAINT fk_room_user_user_room_roles1
+  CONSTRAINT fk_room_user_user_roles1
     FOREIGN KEY (user_role_id)
-    REFERENCES mamall.user_room_roles (role_id)
+    REFERENCES mamall.user_roles (role_id)
     ON DELETE NO ACTION
     ON UPDATE NO ACTION);
 
@@ -182,6 +196,7 @@ CREATE TABLE IF NOT EXISTS mamall.files (
   file_id  BIGSERIAL,
   file_url VARCHAR(256) NULL,
   file_path VARCHAR(256) NULL,
+  time_uploaded TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (file_id));
 
 

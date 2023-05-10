@@ -1,6 +1,7 @@
 version: "3.9"
 services:
     db:
+        image: postgresql...
     
     stun-server:
         build: ./mamall-back/
@@ -8,5 +9,6 @@ services:
         ports:
             - "3478:3478/udp"
             - "80:80"
+            - "8000:8000"
         volumes:
             - ./mamall-back:/app/src/

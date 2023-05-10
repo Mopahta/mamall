@@ -1,14 +1,16 @@
 const pg = require('pg');
 const config = require('./config/config');
 const users = require('./user/db-users');
-const rooms = require('./room/db-rooms')
+const rooms = require('./room/db-rooms');
 
-(function() {
-    let db;
-    let pool;
+module.exports = {
+    pool: null,
 
-    module.exports.connect = function() {
-        pool = new pg.Pool({
+    connect: function() {
+        if (this.pool) {
+            return;
+        }
+        this.pool = new pg.Pool({
 
             host: config.pghost,
             user: config.pguser,
@@ -16,33 +18,33 @@ const rooms = require('./room/db-rooms')
             password: config.pgpassword,
             port: config.pgport,
             max: 20,
-            idleTimeoutMillis: 35000
+            idleTimeoutMillis: 60000
 
         });
 
-        users.setPool(pool);
-        rooms.setPool(pool);
+        users.setPool(this.pool);
+        rooms.setPool(this.pool);
 
-        pool.on('connect', (client) => {
+        this.pool.on('connect', (client) => {
             console.log("New client connected to database.");
         });
 
-        pool.on('error', (error, client) => {
+        this.pool.on('error', (error, client) => {
             console.error(error);
         });
 
-        pool.on('remove', (client) => {
+        this.pool.on('remove', (client) => {
             console.log("Client was removed from pool.");
         });
 
-        console.log('Successfully created database Pool.')
+        console.log('Successfully created database pool.')
         
         return true;
-    }
+    },
 
-    module.exports.disconnect = function() {
+    disconnect: function() {
         (async () => {
-            await pool.end()
+            await this.pool.end()
                 .then(() => { 
                     console.log('The database connection is closed.');
                     return true;
@@ -54,56 +56,97 @@ const rooms = require('./room/db-rooms')
         })();
         
         return true;
-    }
+    },
 
     // User-related functions
 
-    module.exports.getAllUsers = users.getAllUsers 
+    getAllUsers: users.getAllUsers,
 
-    module.exports.getUserInfoById = users.getUserInfoById 
+    getUserInfoById: users.getUserInfoById,
 
-    module.exports.getUserOnlineStatus = users.getUserOnlineStatus
+    getUserInfoByUsername: users.getUserInfoByUsername,
 
-    module.exports.getUserContacts = users.getUserContacts
+    getUserOnlineStatus: users.getUserOnlineStatus,
 
-    module.exports.getUserActiveIcon = users.getUserActiveIconPath
+    getUserContacts: users.getUserContacts,
 
-    module.exports.getUserPrivacySets = users.getUserPrivacySets
+    getPendingContacts: users.getPendingContacts,
 
-    module.exports.updateUserIcon = users.updateUserIcon
+    approvePendingContact: users.approvePendingContact,
 
-    module.exports.createUser = users.createUser
+    getUserActiveIcon: users.getUserActiveIconPath,
 
-    module.exports.addContact = users.addContact
+    getUserPrivacySets: users.getUserPrivacySets,
 
-    module.exports.setUserOnlineStatus = users.setUserOnlineStatus
+    updateUserIcon: users.updateUserIcon,
 
+    createUser: users.createUser,
+
+    addContact: users.addContact,
+
+    getContactInfo: users.getContactInfo,
+
+    deleteContact: users.deleteContact,
+
+    updateContactRoom: users.updateContactRoom,
+
+    updateUserRefreshToken: users.updateUserRefreshToken,
+
+    getUserRefreshTokenById: users.getUserRefreshTokenById,
+
+    // not implemented
+    updateUserRole: users.updateUserRole,
+
+    // online_statuses:
+    //      1 - offline
+    //      2 - online
+    //      3 - away
+    setUserOnlineStatus: users.setUserOnlineStatus,
+
+    // @params:
+    //  room id, array of user ids in this room 
+    getUsersRoomInfo: users.getUsersRoomInfo,
+
+    // @params:
+    //  room id, user id in this room 
+    getUserRoomInfo: users.getUserRoomInfo,
 
     // Room-related functions
 
-    module.exports.getAllRooms = rooms.getAllRooms
+    getAllRooms: rooms.getAllRooms,
 
-    module.exports.getAllRoomsWithMode = rooms.getAllRoomsWithMode
+    getAllRoomsWithMode: rooms.getAllRoomsWithMode,
 
-    module.exports.getRoomInfoById = rooms.getRoomInfoById
+    getRoomInfoById: rooms.getRoomInfoById,
 
-    module.exports.getRoomUsers = rooms.getRoomUsers
+    getRoomUsers: rooms.getRoomUsers,
 
-    module.exports.setRoomMode = rooms.setRoomMode
+    setRoomMode: rooms.setRoomMode,
 
-    module.exports.getRoomModes = rooms.getRoomModes
+    getRoomModes: rooms.getRoomModes,
 
-    module.exports.getUserRoles = rooms.getUserRoles
+    getUserRoles: rooms.getUserRoles,
 
-    module.exports.getRoleValue = rooms.getRoleValue
+    getRoleValue: rooms.getRoleValue,
 
-    module.exports.addUserToRoom = rooms.addUserToRoom
+    addUserToRoom: rooms.addUserToRoom,
 
-    module.exports.deleteUserFromRoom = rooms.deleteUserFromRoom
+    deleteUserFromRoom: rooms.deleteUserFromRoom,
+    
+    deleteRoom: rooms.deleteRoom,
 
-    module.exports.updateUserRoomInfo = rooms.updateUserRoomInfo
+    updateUserRoomInfo: rooms.updateUserRoomInfo,
 
-    module.exports.createRoom = rooms.createRoom
+    updateUserRoomRole: rooms.updateUserRoomRole,
 
-    module.exports.getUserRooms = rooms.getUserRooms
-}());
+    updateUserRoomNickname: rooms.updateUserRoomNickname,
+
+    createRoom: rooms.createRoom,
+
+    getUserRooms: rooms.getUserRooms,
+
+    getUserRoomsInfo: rooms.getUserRoomsInfo,
+
+    getUserPublicRoomsInfo: rooms.getUserPublicRoomsInfo,
+
+};
