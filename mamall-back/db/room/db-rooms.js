@@ -270,14 +270,14 @@ const config = require('../config/config');
         }
         catch (err) {
             console.error(err.stack);
-            return false;
+            return err.code;
         }
 
         return true;
 
     }
 
-    module.exports.deleteUserFromRoom = async function(room_user) {
+    module.exports.deleteUserFromRoom = async function(room_id, user_id) {
 
         if (!pool) {
             console.error("Pool not initialized in db-rooms.")
@@ -290,7 +290,7 @@ const config = require('../config/config');
                     ${config.pgschema}.room_user 
                     *
                     WHERE room_id = $1 AND user_id = $2;`,
-            values: [room_user.room_id, room_user.user_id]
+            values: [room_id, user_id]
         }
         
         try {

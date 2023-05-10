@@ -620,7 +620,7 @@ const config = require('../config/config');
         try {
             res = await pool.query(query);
                 
-            if (res.length > 0) {
+            if (res.rows.length > 0) {
                 user = res.rows[0];
             }
         }

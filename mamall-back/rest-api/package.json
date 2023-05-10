@@ -1,6 +1,6 @@
 {
   "name": "rest-api",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "description": "REST API service of Mamall Web App.",
   "main": "server.js",
   "scripts": {

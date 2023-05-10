@@ -145,7 +145,7 @@ module.exports = {
 
     getUserRooms: rooms.getUserRooms,
 
-    getUserRoomInfo: rooms.getUserRoomsInfo,
+    getUserRoomsInfo: rooms.getUserRoomsInfo,
 
     getUserPublicRoomsInfo: rooms.getUserPublicRoomsInfo,
 

@@ -128,7 +128,6 @@ wsServer.on('connect', function(connection) {
         console.log(new Date() + ' Peer ' + connection.remoteAddress + ' disconnected.');
         let user = shared.findUserByConnection(connectedUsers, connection);
         if (user) {
-            mediaServer.deleteUserTransports(user.user_id);
             handleUserRoomLeave({user_id: user.user_id, payload: {}});
         }
         connectedUsers = shared.deleteUserByConnection(connectedUsers, connection);
@@ -281,6 +280,9 @@ async function getOnProduce(data) {
 
         let callerInfo = users.find(user => user.user_id === data.user_id);
         
+        if (callerInfo.user_room_nickname == null) {
+            callerInfo.user_room_nickname = "";
+        }
         users.forEach(user => {
             if (user.user_id !== data.user_id) {
                 let userWS = shared.findUserById(connectedUsers, user.user_id);
@@ -293,6 +295,7 @@ async function getOnProduce(data) {
                         user: callerInfo
                     }
     
+                    console.log(message);
                     userWS.connection.sendUTF(JSON.stringify(message));
                     let userProducer = mediaServer.getUserRoomProducer(data.payload.room_id, user.user_id);
     
@@ -300,6 +303,9 @@ async function getOnProduce(data) {
                         user.producer_id = userProducer.id;
                     }
                 }
+            }
+            if (user.user_room_nickname == null) {
+                user.user_room_nickname = "";
             }
         })
 

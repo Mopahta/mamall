@@ -220,12 +220,12 @@ function deleteUserTransports(user_id, room_id) {
 
     if (room_id != null) {
         let broadcaster = broadcasters.find(x => x.room_id === room_id);
-        for (let i = 0; i < broadcaster.transports.length; i++) {
-            if (broadcaster.transports[i].userId !== user_id) {
-                broadcaster.transports[i].webRtcTransport.close();
-            }
-        }
         if (broadcaster != null) {
+            for (let i = 0; i < broadcaster.transports.length; i++) {
+                if (broadcaster.transports[i].userId !== user_id) {
+                    broadcaster.transports[i].webRtcTransport.close();
+                }
+            }
             broadcaster.producers.delete(user_id);
         }
     }

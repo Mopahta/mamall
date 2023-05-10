@@ -189,15 +189,93 @@ router.post("/room/create", verifyToken, upload.none(), async function (req, res
 
     console.log(req.body);
 
-    let ids = JSON.parse(req.body.ids);
+    if (req.body.roomname == null || req.body.roomname === "") {
+        return res.status(418).json({status: "error", message: "Room name is not passed"});
+    }
 
-    console.log(req.user);
+    let room = await db.createRoom({ name: req.body.roomname, room_mode_id: 2 });
 
-    console.log(ids);
-
-    // let room = db.createRoom
+    console.log(room);
+    if (room != null) {
+        db.addUserToRoom({
+            room_id: room.room_id, user_id: req.user.user_id, 
+            user_room_nickname: null, user_role_id: 6
+        })
+    }
 
     res.status(200).json({status: "ok"});
+})
+
+router.post("/room/add", verifyToken, upload.none(), async function (req, res) {
+    console.log("room add user");
+
+    let username = req.body.username;
+
+    if (username == null) {
+        return res.status(404).json({message: "No username passed."});
+    }
+
+    let userInfo = await db.getUserInfoByUsername(username);
+
+    if (userInfo == null) {
+        return res.status(404).json({message: "No such user."});
+    }
+
+    if (userInfo.user_id === req.user.user_id) {
+        return res.status(403).json({message: "Can't add myself to room."})
+    }
+
+    let contact = await db.getContactInfo(req.user.user_id, userInfo.user_id);
+
+    if (contact != null && contact.pending_invite === 0) {
+        let status = await db.addUserToRoom({
+            room_id: req.body.room_id, user_id: contact.contact_id, 
+            user_room_nickname: null, user_role_id: 1
+        })
+
+        if (status == '23505') {
+            return res.status(401).json({status: "error", description: "User is already in the room."});
+        }
+    }
+    
+    res.status(201).json({status: "error", message: "User is not in contact list."}).end();
+})
+
+router.post("/room/remove", verifyToken, upload.none(), async function (req, res) {
+    console.log("room remove user");
+    if (req.body.user_id == null) {
+        return res.status(404).json({message: "No user id passed."});
+    }
+
+    console.log(req.body);
+    let userInfo = await db.getUserInfoById(req.body.user_id);
+
+    if (userInfo == null) {
+        return res.status(404).json({message: "No such user."});
+    }
+
+    if (userInfo.user_id === req.user.user_id) {
+        return res.status(403).json({message: "Can't remove myself from room."})
+    }
+
+    let roomUserInfo = await db.getUserRoomInfo(req.body.room_id, req.body.user_id);
+    console.log(roomUserInfo);
+
+    if (roomUserInfo != null) {
+        let reqUserInfo = await db.getUserRoomInfo(req.body.room_id, req.user.user_id);
+        let reqUserRoleValue = await db.getRoleValue(reqUserInfo.user_role_id);
+        let delUserRoleValue = await db.getRoleValue(roomUserInfo.user_role_id);
+
+        if ((reqUserRoleValue.role_value >= 230 && delUserRoleValue.role_value <= 149) || 
+            (reqUserRoleValue.role_value === 255)) {
+            db.deleteUserFromRoom(req.body.room_id, userInfo.user_id);
+            return res.status(201).json({status: "ok"}).end();
+        }
+
+        return res.status(401).json({status: "error", message: "Not enough permissions."}).end();
+    }
+
+    res.status(401).json({status: "error", message: "User is not in the room."}).end();
 })
 
 router.get("/room", verifyToken, upload.none(), async function (req, res) {
