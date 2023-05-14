@@ -16,7 +16,6 @@ function Login({user, setUser}) {
         setErrors('')
 
         const data = new FormData(event.target)
-        console.log(data)
 
         if (document.getElementById("username").value === "") {
             document.getElementById("error-username").style.display="inline";

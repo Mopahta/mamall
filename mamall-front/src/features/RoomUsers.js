@@ -2,6 +2,7 @@ import { useEffect, useContext } from "react";
 import { RoomUsersContext } from "../context/RoomUsersContext";
 import * as valid from "../common/validation";
 import * as config from "../config/config";
+import noUserIcon from './null.jpg';
 
 function RoomUsers({user, room, socket}) {
 
@@ -109,7 +110,7 @@ function RoomUsers({user, room, socket}) {
                                     <i className="trash icon" onClick={() => removeUserFromRoom(item.user_id)}></i>
                                 </button>
                             </div>
-                            <img className="ui avatar image" src={process.env.PUBLIC_URL + "/" + item.icon_file_id} alt="room-user"></img>
+                            <img className="ui avatar image" src={noUserIcon} alt="room-user"></img>
                             <div className="content">
                                 <a className="header">{item.username}</a>
                                 <div className="description">{item.user_room_nickname + " " + item.description}</div>

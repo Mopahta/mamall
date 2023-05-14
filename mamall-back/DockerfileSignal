@@ -1,0 +1,40 @@
+FROM node:19
+
+ENV GUID=1000
+ENV PGUID=1000
+
+RUN \
+	set -x \
+	&& apt-get update \
+	&& apt-get install -y net-tools build-essential python3 python3-pip valgrind
+
+WORKDIR /app/src/db
+COPY db/package*.json ./
+
+# RUN npm install
+RUN npm ci --only=production
+COPY db/. ./
+
+
+WORKDIR /app/src/media-server
+COPY media-server/package*.json ./
+
+# RUN npm install
+RUN npm ci --only=production
+COPY media-server/. ./
+
+
+WORKDIR /app/src/signal-server
+COPY signaling-server/package*.json ./
+
+# RUN npm install
+RUN npm ci --only=production
+COPY signaling-server/. ./
+
+WORKDIR /app/src/
+COPY secret.js ./
+
+EXPOSE 7001
+EXPOSE 11111
+
+CMD ["node", "/app/src/signal-server/signal-server.js"]

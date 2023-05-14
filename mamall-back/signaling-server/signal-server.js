@@ -357,7 +357,7 @@ async function handleUserRoomLeave(data) {
 
     let userIds = mediaServer.getRoomActiveUsers(data.payload.room_id);
 
-    if (userIds.length === 0) {
+    if (userIds == null || userIds.length === 0) {
         mediaServer.closeRoom(data.payload.room_id);
         return {
             type: 7,

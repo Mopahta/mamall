@@ -1,5 +1,5 @@
 import logo from './logo.svg';
-// import './App.css';
+import './App.css';
 import Header from './common/Header';
 import { useState, useCallback, useEffect, useRef, createContext, useMemo } from 'react';
 import { Route, Routes } from 'react-router-dom';
@@ -506,7 +506,6 @@ function App () {
             <Route path="*" element={<Error message={"Page not found"} />} />
         </Routes>
         </RoomUsersContext.Provider>
-        <span>The WebSocket is currently {socketStatuses[socketStatus]}</span>
         </div>
     );
 };

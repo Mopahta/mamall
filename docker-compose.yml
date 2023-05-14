@@ -1,14 +1,80 @@
 version: "3.9"
 services:
     db:
-        image: postgresql...
+        image: postgres:15
+        restart: unless-stopped
+        env_file: .db_env
+        ports:
+            - 5432
+        volumes:
+            - /opt/mamall-db:/var/lib/postgresql/data
+            - ./mamall-back/db/migrations/:/docker-entrypoint-initdb.d/
+        networks:
+          mamall_private:
+            ipv4_address: 172.16.239.11
     
-    stun-server:
-        build: ./mamall-back/
+    rest:
+        build: 
+          context: ./mamall-back/
+          dockerfile: DockerfileRest
+        env_file: 
+            - .backend_env
+            - .db_env
         user: 1000:1000
         ports:
-            - "3478:3478/udp"
-            - "80:80"
-            - "8000:8000"
-        volumes:
-            - ./mamall-back:/app/src/
+            - 8080
+        depends_on:
+            - db
+        networks:
+          mamall_public:
+            ipv4_address: 172.16.238.9
+          mamall_private:
+            ipv4_address: 172.16.239.9
+
+    signaling:
+        build: 
+          context: ./mamall-back/
+          dockerfile: DockerfileSignal
+        env_file: 
+            - .backend_env
+            - .db_env
+        user: 1000:1000
+        ports:
+            - 7001
+            - 11111:11111/udp
+            - 11111:11111
+        depends_on:
+            - db
+        networks:
+          mamall_public:
+            ipv4_address: 172.16.238.10
+          mamall_private:
+            ipv4_address: 172.16.239.10
+    frontend:
+        env_file: 
+            - .frontend_env
+        build: 
+          context: ./mamall-front/
+          args:
+            HTTPHOST: "https://mamont.sytes.net/api/v1"
+            WSHOST: "wss://mamont.sytes.net"
+            VALIDATEPATH: "/validate"
+            REFRESHPATH: "/refresh"
+        user: 1000:1000
+        ports:
+            - 3000
+        networks:
+          mamall_public:
+            ipv4_address: 172.16.238.11
+
+networks:
+  mamall_public: 
+    ipam:
+      driver: default
+      config:
+        - subnet: "172.16.238.0/24"
+  mamall_private:
+    ipam:
+      driver: default
+      config:
+        - subnet: "172.16.239.0/24"
