@@ -2,8 +2,8 @@
 
 module.exports = {
 
-    host: process.env.HTTPHOST || "http://localhost:8080/api/v1",
-    wsHost: process.env.WSHOST || "ws://localhost:7001",
+    host: process.env.HTTPHOST || "https://mamont.sytes.net/api/v1",
+    wsHost: process.env.WSHOST || "wss://mamont.sytes.net:7001/",
     validatePath: process.env.VALIDATEPATH || "/validate",
     refreshPath: process.env.REFRESHPATH || "/refresh"
     

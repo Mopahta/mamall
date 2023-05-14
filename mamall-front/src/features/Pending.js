@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import * as config from "../config/config";
 import Error from "../common/Error";
 import * as valid from "../common/validation";
+import noUserIcon from './null.jpg';
 
 function Pending({user}) {
     const [error, setError] = useState(null);
@@ -92,7 +93,7 @@ function Pending({user}) {
                                 <i className="eye slash icon" onClick={() => modifyContact(item, 'DELETE')}></i>
                             </button>
                         </div>
-                        <img className="ui avatar image" src={process.env.PUBLIC_URL + "/" + item.icon_file_id} alt="contact"></img>
+                        <img className="ui avatar image" src={noUserIcon} alt="contact"></img>
                         <div className="content">
                             <a className="header">{item.username}</a>
                             <div className="description">{item.contact_nickname + " " + item.contact_since}</div>

@@ -1,5 +1,6 @@
 import { useContext } from "react";
 import { RoomUsersContext } from "../context/RoomUsersContext";
+import noUserIcon from './null.jpg';
 
 function RoomContent({user, room, socket}) {
 
@@ -22,7 +23,7 @@ function RoomContent({user, room, socket}) {
                         <div className="ui brown inverted segment">
                             <div className="right floated content">
                             </div>
-                            <img className="ui avatar image" src={process.env.PUBLIC_URL + "/" + item.icon_file_id} alt="room-user"></img>
+                            <img className="ui avatar image" src={noUserIcon} alt="room-user"></img>
                             <div className="content">
                                 <a className="header">{item.username}</a>
                                 <div className="description">{item.user_room_nickname + " " + item.description}</div>

@@ -1,0 +1,27 @@
+FROM node:19
+
+ENV GUID=1000
+ENV PGUID=1000
+
+WORKDIR /app/src/db
+COPY db/package*.json ./
+
+# RUN npm install
+RUN npm ci --only=production
+COPY db/. ./
+
+
+WORKDIR /app/src/rest-api
+COPY rest-api/package*.json ./
+
+# RUN npm install
+RUN npm ci --only=production
+COPY rest-api/. ./
+
+
+WORKDIR /app/src/
+COPY secret.js ./
+
+EXPOSE 8080
+
+CMD ["node", "/app/src/rest-api/server.js"]

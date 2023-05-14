@@ -1,0 +1,9 @@
+Dockerfile
+.dockerignore
+.env
+npm-debug.log
+node_modules
+.db_env
+.backend_env
+.fontend_env
+README.md
