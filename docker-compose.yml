@@ -3,7 +3,9 @@ services:
     db:
         image: postgres:15
         restart: unless-stopped
-        env_file: .db_env
+        environment:
+            - POSTGRES_PASSWORD=${POSTGRES_PASSWORD?error}
+            - POSTGRES_USER=${POSTGRES_USER?error}
         ports:
             - 5432
         volumes:
@@ -17,9 +19,15 @@ services:
         build: 
           context: ./mamall-back/
           dockerfile: DockerfileRest
-        env_file: 
-            - .backend_env
-            - .db_env
+        environment:
+            - POSTGRES_PASSWORD=${POSTGRES_PASSWORD?error}
+            - POSTGRES_USER=${POSTGRES_USER?error}
+            - POSTGRES_PORT=${POSTGRES_PORT?error}
+            - POSTGRES_DB=${POSTGRES_DB?error}
+            - POSTGRES_SCHEMA=${POSTGRES_SCHEMA?error}
+            - PGHOST=${PGHOST?error}
+            - CORSORIGIN=${CORSORIGIN?error}
+            - JWTSECRET=${JWTSECRET?error}
         user: 1000:1000
         ports:
             - 8080
@@ -35,9 +43,17 @@ services:
         build: 
           context: ./mamall-back/
           dockerfile: DockerfileSignal
-        env_file: 
-            - .backend_env
-            - .db_env
+        environment:
+            - POSTGRES_PASSWORD=${POSTGRES_PASSWORD?error}
+            - POSTGRES_USER=${POSTGRES_USER?error}
+            - POSTGRES_PORT=${POSTGRES_PORT?error}
+            - POSTGRES_DB=${POSTGRES_DB?error}
+            - POSTGRES_SCHEMA=${POSTGRES_SCHEMA?error}
+            - PGHOST=${PGHOST?error}
+            - MEDIASOUP_LISTEN_IP=${MEDIASOUP_LISTEN_IP?error}
+            - MEDIASOUP_ANNOUNCED_IP=${MEDIASOUP_ANNOUNCED_IP?error}
+            - CORSORIGIN=${CORSORIGIN?error}
+            - JWTSECRET=${JWTSECRET?error}
         user: 1000:1000
         ports:
             - 7001
@@ -51,15 +67,13 @@ services:
           mamall_private:
             ipv4_address: 172.16.239.10
     frontend:
-        env_file: 
-            - .frontend_env
         build: 
           context: ./mamall-front/
           args:
-            HTTPHOST: "https://mamont.sytes.net/api/v1"
-            WSHOST: "wss://mamont.sytes.net"
-            VALIDATEPATH: "/validate"
-            REFRESHPATH: "/refresh"
+            HTTPHOST: ${HTTPHOST?error}
+            WSHOST: ${WSHOST?error}
+            VALIDATEPATH: ${VALIDATEPATH?error}
+            REFRESHPATH: ${REFRESHPATH?error}
         user: 1000:1000
         ports:
             - 3000

@@ -26,7 +26,7 @@ Application uses WebRTC specification implemented by 3rd party library Mediasoup
 
 Files with environment variables must be written before run.
 
-`.db_env`:
+`.env`:
 
 ```
 POSTGRES_DB=
@@ -36,8 +36,6 @@ POSTGRES_USER=
 PGHOST=172.16.239.11
 ```
 
-`.backend_env`:
-
 [Choosing Mediasoup variables](https://mediasoup.org/faq/#running-mediasoup-in-hosts-with-private-ip)
 ```
 MEDIASOUP_LISTEN=
@@ -46,10 +44,9 @@ CORSORIGIN=
 JWTSECRET= secret sequence used to generate jwt token
 ```
 
-`.frontend_env`:
 ```
-HTTPHOST= api endpoint [http://url:8080/api/v1]
-WSHOST= websocket endpoint [ws://url:7001]
+HTTPHOST= api endpoint [http://url:8080/api/v1]/[https:url/api/v1]
+WSHOST= websocket endpoint [ws://url:7001]/[wss://url]
 ```
 
 After all files are initialized as preferred run:
