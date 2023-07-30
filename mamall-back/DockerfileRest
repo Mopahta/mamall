@@ -12,11 +12,11 @@ COPY db/. ./
 
 
 WORKDIR /app/src/rest-api
-COPY rest-api/package*.json ./
+COPY rest-api/v1/package*.json ./
 
 # RUN npm install
 RUN npm ci --only=production
-COPY rest-api/. ./
+COPY rest-api/v1/. ./
 
 
 WORKDIR /app/src/

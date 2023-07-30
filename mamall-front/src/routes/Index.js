@@ -12,7 +12,7 @@ const Index = memo(function Index({user, socket, room, changeRoom}) {
                 {user.auth?
                 <UserInteraction user={user} setRoom={changeRoom} socket={socket} />
                 :
-                <Error message={"Sign in to see contacts"} />
+                <Error message={"Log in to see contacts."} />
                 }
 
             </div>
@@ -22,7 +22,7 @@ const Index = memo(function Index({user, socket, room, changeRoom}) {
                     <Route path="/" element={<Room user={user} room={room} socket={socket} setRoom={changeRoom} />} />
                 </Routes>
                 :
-                <Error message={"Sign in to use room."} />
+                <Error message={"Log in to use rooms."} />
                 }
             </div>
         </div>
