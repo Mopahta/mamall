@@ -8,8 +8,11 @@ public class Main {
 
 	public static void main (String[] args) {
 		Tomcat server = new Tomcat();
+		String appbase = ".";
 
 		server.setPort(PORT);
+		server.getHost().setAppBase(appbase);
+		server.addWebapp("", appbase);
 
 		try {
 			server.start();
