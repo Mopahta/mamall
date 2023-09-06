@@ -12,7 +12,7 @@ import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 
 @Configuration
 @EnableWebMvc
-@ComponentScan("mamall.api.v2")
+@ComponentScan(basePackages = "mamall.api.v2")
 public class MamallConfig implements WebApplicationInitializer {
 
 	@Override
@@ -21,12 +21,12 @@ public class MamallConfig implements WebApplicationInitializer {
 
 		rootContext.register(MamallConfig.class);
 
-		servletContext.addListener(new ContextLoaderListener(rootContext));
+//		servletContext.addListener(new ContextLoaderListener(rootContext));
 
-		AnnotationConfigWebApplicationContext dispatcherContext = new AnnotationConfigWebApplicationContext();
+//		AnnotationConfigWebApplicationContext dispatcherContext = new AnnotationConfigWebApplicationContext();
 
 		ServletRegistration.Dynamic dispatcher =
-			  servletContext.addServlet("dispatcher2", new DispatcherServlet(dispatcherContext));
+			  servletContext.addServlet("mamall", new DispatcherServlet(rootContext));
 		dispatcher.setLoadOnStartup(1);
 		dispatcher.addMapping("/");
 	}
