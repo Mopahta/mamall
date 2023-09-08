@@ -21,12 +21,9 @@ public class MamallConfig implements WebApplicationInitializer {
 
 		rootContext.register(MamallConfig.class);
 
-//		servletContext.addListener(new ContextLoaderListener(rootContext));
-
-//		AnnotationConfigWebApplicationContext dispatcherContext = new AnnotationConfigWebApplicationContext();
-
 		ServletRegistration.Dynamic dispatcher =
-			  servletContext.addServlet("mamall", new DispatcherServlet(rootContext));
+			  servletContext.addServlet("mamall-rest", new DispatcherServlet(rootContext));
+
 		dispatcher.setLoadOnStartup(1);
 		dispatcher.addMapping("/");
 	}

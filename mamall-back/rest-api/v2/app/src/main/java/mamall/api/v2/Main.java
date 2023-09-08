@@ -4,22 +4,18 @@ import org.apache.catalina.LifecycleException;
 import org.apache.catalina.startup.Tomcat;
 
 public class Main {
-	private static final int PORT = 8080;
+	private static final int PORT = 8001;
 
-	public static void main (String[] args) {
-		Tomcat server = new Tomcat();
-		String appbase = ".";
+	public static void main (String[] args) throws LifecycleException {
 
-		server.setPort(PORT);
-		server.getHost().setAppBase(appbase);
-		server.addWebapp("", appbase);
+		String appBase = ".";
+		Tomcat tomcat = new Tomcat();
+		tomcat.setPort(PORT);
+		tomcat.getHost().setAppBase(appBase);
+		tomcat.addWebapp("", appBase);
+		tomcat.getConnector();
+		tomcat.start();
+		tomcat.getServer().await();
 
-		try {
-			server.start();
-			server.getServer().await();
-		}
-		catch (LifecycleException e){
-			System.out.println(e.toString());
-		}
 	}
 }
