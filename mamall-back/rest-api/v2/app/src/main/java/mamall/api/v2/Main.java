@@ -4,7 +4,7 @@ import org.apache.catalina.LifecycleException;
 import org.apache.catalina.startup.Tomcat;
 
 public class Main {
-	private static final int PORT = 8001;
+	private static final int PORT = 8081;
 
 	public static void main (String[] args) throws LifecycleException {
 
