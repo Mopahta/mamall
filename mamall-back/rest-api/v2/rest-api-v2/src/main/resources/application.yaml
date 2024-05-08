@@ -1,0 +1,19 @@
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5432/mamall
+    driver-class-name: org.postgresql.Driver
+    username: paul
+    password: paul
+  jpa:
+    hibernate:
+      ddl-auto: validate
+server:
+  port: 8081
+management:
+  endpoint:
+    health:
+      show-details: always
+  endpoints:
+    web:
+      exposure:
+        include: env,health,beans,info,metrics
