@@ -4,10 +4,10 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import tech.mamall.dto.request.UserRegisterDto;
+import tech.mamall.exception.UserNotFoundException;
 import tech.mamall.exception.UsernameAlreadyTakenException;
 import tech.mamall.mapper.UserInfoMapper;
 import tech.mamall.model.UserEntity;
@@ -35,7 +35,7 @@ public class UserService {
 
 	public UserEntity getByUsername(String username) {
 		return userRepository.findByUsername(username)
-			  .orElseThrow(() -> new UsernameNotFoundException("Пользователь не найден"));
+			  .orElseThrow(() -> new UserNotFoundException(username));
 
 	}
 
