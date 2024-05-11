@@ -4,14 +4,10 @@ import lombok.*;
 
 @Getter
 @Setter
-@ToString
-@NoArgsConstructor
 @AllArgsConstructor
-@Builder
-public class JwtTokenDto {
+@ToString
+public class LoginInfoDto {
 
-	private String accessToken;
-	private String refreshToken;
 	private String username;
 	private Long userId;
 
