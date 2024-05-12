@@ -369,8 +369,7 @@ function App () {
         // document.getElementById("audio-player-" + user.user_id).remove();
     }
 
-    // TODO:
-    // if the page reloaded after the call can't create producer on back 
+    // TODO: if the page reloaded after the call can't create producer on back
 
     // type: 8
     async function userDiscFromRoom(data) {
@@ -500,7 +499,8 @@ function App () {
             <Header user={user} setUser={setUser}/>
         <RoomUsersContext.Provider value={usersContext}>
         <Routes>
-                <Route index path="/" element={<Index user={user} socket={socket.current} room={room} changeRoom={changeRoom}/>} />
+                <Route index path="/" element={<Index user={user} socket={socket.current} room={room}
+                                                      changeRoom={changeRoom} audioTrack={audioTrack.current}/>} />
             <Route path="login" element={<Login user={user} setUser={setUser}/>} />
             <Route path="signup" element={<Signup user={user} setUser={setUser}/>} />
             <Route path="*" element={<Error message={"Page not found"} />} />

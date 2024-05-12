@@ -4,7 +4,7 @@ import Error from "../common/Error";
 import RoomUsers from "./RoomUsers";
 import RoomContent from "./RoomContent";
 
-const Room = memo(function Room({user, room, socket, setRoom}) {
+const Room = memo(function Room({user, room, socket, setRoom, audioTrack}) {
     const [error, setError] = useState(null);
     const [isLoaded, setIsLoaded] = useState(false);
     const [items, setItems] = useState([]);
@@ -16,6 +16,22 @@ const Room = memo(function Room({user, room, socket, setRoom}) {
             roomModeId: 0,
             description: null
         }, room.roomId);
+    }
+
+    const toggleMute = async () => {
+
+        console.log(audioTrack.enabled);
+
+        if (audioTrack.enabled) {
+            audioTrack.enabled = false;
+
+            document.getElementById("mute-microphone").classList.add("positive");
+        } else {
+            audioTrack.enabled = true;
+
+            document.getElementById("mute-microphone").classList.remove("positive");
+        }
+
     }
 
     return (
@@ -33,7 +49,7 @@ const Room = memo(function Room({user, room, socket, setRoom}) {
                         </div>
                 <div className="ui center aligned container" >
                         <div className="huge ui buttons">
-                            <div className="ui basic icon button">
+                            <div className="ui basic icon button" id="mute-microphone" onClick={() => toggleMute()}>
                                 <i className="microphone slash icon" />
                             </div>
                             <div className="ui basic icon button" onClick={() => leaveRoom()}>
