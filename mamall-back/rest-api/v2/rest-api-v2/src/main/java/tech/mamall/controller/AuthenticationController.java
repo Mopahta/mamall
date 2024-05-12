@@ -2,6 +2,7 @@ package tech.mamall.controller;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.*;
 import org.springframework.web.bind.annotation.*;
 import tech.mamall.dto.request.UserLoginDto;
@@ -14,12 +15,14 @@ import tech.mamall.service.AuthenticationService;
 @RestController
 @RequestMapping("/api/v1")
 @RequiredArgsConstructor
+@Slf4j
 public class AuthenticationController {
 
 	private final AuthenticationService authenticationService;
 
-	@PostMapping("/login")
-	public ResponseEntity<LoginInfoDto> login(@RequestBody @Valid UserLoginDto userLoginDto) {
+	@PostMapping(value = "/login", consumes = { MediaType.MULTIPART_FORM_DATA_VALUE })
+	public ResponseEntity<LoginInfoDto> login(@ModelAttribute @Valid UserLoginDto userLoginDto) {
+		log.info("chivapchichi");
 
 		JwtTokenDto jwtTokenDto = authenticationService.loginUser(userLoginDto);
 
@@ -59,12 +62,12 @@ public class AuthenticationController {
 	private HttpHeaders getSetCookieHeaders(JwtTokenDto jwtTokenDto) {
 		HttpCookie accessTokenCookie = ResponseCookie.from("token", jwtTokenDto.getAccessToken())
 			  .httpOnly(true)
-			  .maxAge(48 * 60 * 60 * 1000).build();
+			  .maxAge(48 * 60 * 60).build();
 
 		HttpCookie refreshTokenCookie = ResponseCookie.from("refresh_token", jwtTokenDto.getAccessToken())
 			  .httpOnly(true)
-			  .path("/api/v2/refresh")
-			  .maxAge(48 * 60 * 60 * 1000).build();
+			  .path("/api/v1/refresh")
+			  .maxAge(48 * 60 * 60).build();
 
 		HttpHeaders headers = new HttpHeaders();
 		headers.add(HttpHeaders.SET_COOKIE, accessTokenCookie.toString());

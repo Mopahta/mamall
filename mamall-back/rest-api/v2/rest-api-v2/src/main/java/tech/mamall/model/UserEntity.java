@@ -52,7 +52,7 @@ public class UserEntity implements UserDetails {
 
 	@Override
 	public Collection<? extends GrantedAuthority> getAuthorities() {
-		return Collections.singleton(new SimpleGrantedAuthority(userRole.getDescription()));
+		return Collections.singleton(new SimpleGrantedAuthority("COCKROACH"));
 	}
 
 	@Override

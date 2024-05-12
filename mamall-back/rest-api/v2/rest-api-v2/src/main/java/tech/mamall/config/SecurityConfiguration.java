@@ -58,7 +58,8 @@ public class SecurityConfiguration {
 							return corsConfiguration;
 						}))
 			  .authorizeHttpRequests(request -> request
-				    .requestMatchers("/", "/api/v2/login", "/api/v2/signup", "/api/v2/refresh").permitAll()
+				    .requestMatchers("/", "/error", "/api/v1/login", "/api/v1/signup",
+						"/api/v1/refresh", "/api/v1/validate").permitAll()
 				    .anyRequest().authenticated())
 			  .sessionManagement(manager -> manager.sessionCreationPolicy(STATELESS))
 			  .authenticationProvider(authenticationProvider())
