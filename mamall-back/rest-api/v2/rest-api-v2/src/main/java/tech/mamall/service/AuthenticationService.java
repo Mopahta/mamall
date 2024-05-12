@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service;
 import tech.mamall.dto.request.UserLoginDto;
 import tech.mamall.dto.request.UserRegisterDto;
 import tech.mamall.dto.response.JwtTokenDto;
+import tech.mamall.exception.InvalidRefreshTokenException;
 import tech.mamall.exception.InvalidTokenException;
 import tech.mamall.exception.UserNotFoundException;
 import tech.mamall.model.UserEntity;
@@ -51,10 +52,16 @@ public class AuthenticationService {
 	}
 
 	public JwtTokenDto refreshToken(String refreshToken) {
-		UserEntity user = jwtService.extractUserInfoFromToken(refreshToken);
+		UserEntity user;
+
+		try {
+			user = jwtService.extractUserInfoFromToken(refreshToken);
+		} catch (InvalidTokenException e) {
+			throw new InvalidRefreshTokenException();
+		}
 
 		if (!userService.verifyRefreshToken(refreshToken, user.getId())) {
-			throw new InvalidTokenException();
+			throw new InvalidRefreshTokenException();
 		}
 
 		refreshToken = jwtService.createRefreshToken(user);

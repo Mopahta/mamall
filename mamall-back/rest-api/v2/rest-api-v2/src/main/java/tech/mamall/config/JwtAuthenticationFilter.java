@@ -13,6 +13,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
+import tech.mamall.exception.InvalidTokenException;
 import tech.mamall.model.UserEntity;
 import tech.mamall.service.JwtService;
 
@@ -43,7 +44,13 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 			return;
 		}
 
-		UserEntity user = jwtService.extractUserInfoFromToken(token);
+		UserEntity user;
+		try {
+			user = jwtService.extractUserInfoFromToken(token);
+		} catch (InvalidTokenException ignored) {
+			filterChain.doFilter(request, response);
+			return;
+		}
 
 		if(user.getUsername() != null) {
 			SecurityContext context = SecurityContextHolder.createEmptyContext();

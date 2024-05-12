@@ -1,7 +1,6 @@
 package tech.mamall.service;
 
 import io.jsonwebtoken.*;
-import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
@@ -17,13 +16,12 @@ import java.util.Date;
 import java.util.Map;
 
 @Service
-@RequiredArgsConstructor
 public class JwtService {
 
 	private SecretKey secretKey;
 
 	public JwtService(@Value("${JWTSECRET}") String jwtSecret) {
-		secretKey = new SecretKeySpec(jwtSecret.getBytes(StandardCharsets.UTF_8), "SHA-512");
+		secretKey = new SecretKeySpec(jwtSecret.getBytes(StandardCharsets.UTF_8), "HmacSHA256");
 	}
 
 	public String createAccessToken(UserDetails userDetails) {
