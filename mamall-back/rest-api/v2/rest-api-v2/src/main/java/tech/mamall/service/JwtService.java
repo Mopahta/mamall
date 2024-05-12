@@ -5,6 +5,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
+import tech.mamall.exception.InvalidTokenException;
 import tech.mamall.model.UserEntity;
 
 import javax.crypto.SecretKey;
@@ -75,13 +76,16 @@ public class JwtService {
 				  .build()
 				  .parseSignedClaims(token);
 
+			if (jwt.getPayload().getExpiration().before(new Date())) {
+				throw new InvalidTokenException();
+			}
 			UserEntity userEntity = new UserEntity();
 			userEntity.setId(jwt.getPayload().get("user_id", Long.class));
 			userEntity.setUsername(jwt.getPayload().get("username", String.class));
 
 			return userEntity;
 		} catch (JwtException e) {
-			return null;
+			throw new InvalidTokenException();
 		}
 	}
 

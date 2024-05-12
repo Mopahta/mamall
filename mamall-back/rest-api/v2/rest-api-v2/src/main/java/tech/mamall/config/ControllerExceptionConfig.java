@@ -6,6 +6,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import tech.mamall.dto.response.ApiResponse;
+import tech.mamall.exception.InvalidTokenException;
 import tech.mamall.exception.UserNotFoundException;
 import tech.mamall.exception.UsernameAlreadyTakenException;
 
@@ -25,6 +26,14 @@ public class ControllerExceptionConfig {
 		log.error(e.getMessage(), e);
 		return new ResponseEntity<>(
 			  ApiResponse.builder().status("error").description("Invalid credentials.").build(),
+			  HttpStatusCode.valueOf(401));
+	}
+
+	@ExceptionHandler(value = InvalidTokenException.class)
+	public ResponseEntity<ApiResponse> invalidTokenException(InvalidTokenException e) {
+		log.error(e.getMessage(), e);
+		return new ResponseEntity<>(
+			  ApiResponse.builder().status("error").description("Invalid token.").build(),
 			  HttpStatusCode.valueOf(401));
 	}
 

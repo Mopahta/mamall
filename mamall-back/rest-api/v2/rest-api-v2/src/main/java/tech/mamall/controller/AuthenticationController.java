@@ -12,7 +12,7 @@ import tech.mamall.dto.response.LoginInfoDto;
 import tech.mamall.service.AuthenticationService;
 
 @RestController
-@RequestMapping("/api/v2")
+@RequestMapping("/api/v1")
 @RequiredArgsConstructor
 public class AuthenticationController {
 
@@ -23,18 +23,10 @@ public class AuthenticationController {
 
 		JwtTokenDto jwtTokenDto = authenticationService.loginUser(userLoginDto);
 
-		HttpCookie accessTokenCookie = ResponseCookie.from("token", jwtTokenDto.getAccessToken())
-			  .httpOnly(true)
-			  .maxAge(48 * 60 * 60 * 1000).build();
-
-		HttpCookie refreshTokenCookie = ResponseCookie.from("refresh_token", jwtTokenDto.getAccessToken())
-			  .httpOnly(true)
-			  .path("/api/v2/refresh")
-			  .maxAge(48 * 60 * 60 * 1000).build();
+		HttpHeaders headers = getSetCookieHeaders(jwtTokenDto);
 
 		return ResponseEntity.ok()
-			  .header(HttpHeaders.SET_COOKIE, accessTokenCookie.toString())
-			  .header(HttpHeaders.SET_COOKIE, refreshTokenCookie.toString())
+			  .headers(headers)
 			  .body(new LoginInfoDto(jwtTokenDto.getUsername(), jwtTokenDto.getUserId()));
 	}
 
@@ -46,9 +38,30 @@ public class AuthenticationController {
 	}
 
 	@PostMapping("/refresh")
-	public ResponseEntity<ApiResponse> refreshToken(@RequestBody @Valid UserRegisterDto userRegisterDto) {
-		authenticationService.registerUser(userRegisterDto);
+	public ResponseEntity<LoginInfoDto> refreshToken(@CookieValue("refresh_token") String refreshToken) {
+		JwtTokenDto jwtTokenDto = authenticationService.refreshToken(refreshToken);
 
-		return new ResponseEntity<>(HttpStatus.OK);
+		HttpHeaders headers = getSetCookieHeaders(jwtTokenDto);
+
+		return ResponseEntity.ok()
+			  .headers(headers)
+			  .body(new LoginInfoDto(jwtTokenDto.getUsername(), jwtTokenDto.getUserId()));
+	}
+
+	private HttpHeaders getSetCookieHeaders(JwtTokenDto jwtTokenDto) {
+		HttpCookie accessTokenCookie = ResponseCookie.from("token", jwtTokenDto.getAccessToken())
+			  .httpOnly(true)
+			  .maxAge(48 * 60 * 60 * 1000).build();
+
+		HttpCookie refreshTokenCookie = ResponseCookie.from("refresh_token", jwtTokenDto.getAccessToken())
+			  .httpOnly(true)
+			  .path("/api/v2/refresh")
+			  .maxAge(48 * 60 * 60 * 1000).build();
+
+		HttpHeaders headers = new HttpHeaders();
+		headers.add(HttpHeaders.SET_COOKIE, accessTokenCookie.toString());
+		headers.add(HttpHeaders.SET_COOKIE, refreshTokenCookie.toString());
+
+		return headers;
 	}
 }

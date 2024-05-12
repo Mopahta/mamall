@@ -48,6 +48,12 @@ public class UserService {
 		return getByUsername(username);
 	}
 
+	public Boolean verifyRefreshToken(String refreshToken, Long userId) {
+		UserEntity userEntity = userRepository.findById(userId).orElseThrow(() -> new UserNotFoundException(""));
+
+		return userEntity.getRefreshToken().equals(refreshToken);
+	}
+
 	@Transactional
 	public void updateUserRefreshToken(UserDetails user, String refreshToken) {
 		UserEntity userEntity = (UserEntity) user;
