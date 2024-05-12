@@ -48,6 +48,14 @@ public class AuthenticationController {
 			  .body(new LoginInfoDto(jwtTokenDto.getUsername(), jwtTokenDto.getUserId()));
 	}
 
+	@PostMapping("/validate")
+	public ResponseEntity<LoginInfoDto> validateToken(@CookieValue("token") String refreshToken) {
+		JwtTokenDto jwtTokenDto = authenticationService.validateToken(refreshToken);
+
+		return ResponseEntity.ok()
+			  .body(new LoginInfoDto(jwtTokenDto.getUsername(), jwtTokenDto.getUserId()));
+	}
+
 	private HttpHeaders getSetCookieHeaders(JwtTokenDto jwtTokenDto) {
 		HttpCookie accessTokenCookie = ResponseCookie.from("token", jwtTokenDto.getAccessToken())
 			  .httpOnly(true)

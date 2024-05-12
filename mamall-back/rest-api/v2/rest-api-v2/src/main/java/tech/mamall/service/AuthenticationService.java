@@ -64,4 +64,11 @@ public class AuthenticationService {
 		return new JwtTokenDto(jwtService.createAccessToken(user),
 			  refreshToken, user.getUsername(), user.getId());
 	}
+
+	public JwtTokenDto validateToken(String token) {
+		UserEntity user = jwtService.extractUserInfoFromToken(token);
+
+		return JwtTokenDto.builder()
+			  .username(user.getUsername()).userId(user.getId()).build();
+	}
 }
