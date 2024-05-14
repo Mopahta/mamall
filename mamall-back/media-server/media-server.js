@@ -129,23 +129,32 @@ async function connectTransport(room_id, transportId, dtlsParameters) {
     }
 }
 
-async function createTransportProducer(room_id, transportId, userId, kind, rtpParameters) {
+async function createTransportProducer(room_id, transportId, userId, kind, rtpParameters, appData) {
     let roomRouter = broadcasters.find(x => x.room_id == room_id);
 
     if (roomRouter != null) {
         let routerTransport = roomRouter.transports.find(x => x.transportId == transportId);
 
-        let producerId = "" + room_id + userId + 1;
+        let producerId = appData.streamType + room_id + userId + 1;
         
-        let producer = roomRouter.producers.get(userId);
-        
-        if (producer != null) {
-            producer.close();
+        let producers = roomRouter.producers.get(userId);
+
+        // DONE TODO: investigate where to delete producers
+        if (producers != null) {
+            let producersToClose = producers.filter(producer => producer.appData.streamType === appData.streamType);
+            producersToClose.forEach(producer => producer.close())
+
+            producers = producers.filter(producer => producer.appData.streamType !== appData.streamType);
+        } else {
+            producers = []
         }
         
-        console.log("creating transport producer", producerId);
-        producer = await routerTransport.webRtcTransport.produce({ id: producerId, kind, rtpParameters });
-        roomRouter.producers.set(userId, producer);
+        console.log("MEDIA: creating transport producer", producerId);
+        let producer = await routerTransport.webRtcTransport.produce({ id: producerId, kind, rtpParameters, appData });
+
+        // DONE TODO: user can have 1+ producers now
+        producers.push(producer);
+        roomRouter.producers.set(userId, producers);
 
         return producerId;
     }
@@ -162,7 +171,7 @@ function getRoomActiveUsers(room_id) {
     return;
 }
 
-function getUserRoomProducer(room_id, user_id) {
+function getUserRoomProducers(room_id, user_id) {
     let roomRouter = broadcasters.find(x => x.room_id == room_id);
 
     if (roomRouter != null) {
@@ -179,29 +188,37 @@ function checkRouterTransportAvailability() {
     })
     setTimeout(checkRouterTransportAvailability, 600 * 1000);
 
-    console.log(`${new Date()} Routers amount: ${broadcasters.length}`);
+    console.log(`MEDIA: ${new Date()} Routers amount: ${broadcasters.length}`);
 }
 
 // у каждого юзера на на бэке будет 
 // один продусер и консумеров столько же, сколько и участников комнаты - 1
+// upd. 13.05.2024:  походу не один... 1+: на аудио, вебкамеру и на видеострим
+// у каждого свой тип: audio, webcam; добавляются в начале id
 // сделать получение юзеров комнаты
-async function createTransportConsumer(room_id, user_id, new_user_id, transportId, rtpCapabilities) {
+async function createTransportConsumer(room_id, user_id, new_user_id, transportId, rtpCapabilities, streamType) {
+    console.log(`MEDIA: createTransportConsumer() rid: ${room_id} uid: ${user_id} n_uid: ${new_user_id}`);
     let roomRouter = broadcasters.find(x => x.room_id == room_id);
 
     if (roomRouter != null) {
-        let producerId = "" + room_id + new_user_id + 1;
-        let consumerId = "" + room_id + user_id + new_user_id + 0;
+        let producerId = streamType + room_id + new_user_id + 1;
+        let consumerId = streamType + room_id + user_id + new_user_id + 0;
         if (roomRouter.router.canConsume({ producerId: producerId, rtpCapabilities }))
         {
             let routerTransport = roomRouter.transports.find(x => x.transportId == transportId);
-            const consumer = await routerTransport.webRtcTransport.consume({ producerId: producerId, rtpCapabilities, paused: true });
+            const consumer =
+                await routerTransport.webRtcTransport.consume(
+                    {
+                        producerId: producerId, rtpCapabilities, paused: true, appData: { streamType: streamType }
+                    });
             roomRouter.consumers.set(consumer.id, consumer);
 
             return {
                 id: consumer.id,
                 producerId: consumer.producerId,
                 kind: consumer.kind,
-                rtpParameters: consumer.rtpParameters
+                rtpParameters: consumer.rtpParameters,
+                streamType: streamType
             }
         }
     }
@@ -216,7 +233,7 @@ function resumeConsumer(room_id, consumer_id) {
 }
 
 function deleteUserTransports(user_id, room_id) {
-    console.log("clearing after", user_id, room_id);
+    console.log("MEDIA: clearing after", user_id, room_id);
 
     if (room_id != null) {
         let broadcaster = broadcasters.find(x => x.room_id === room_id);
@@ -243,7 +260,7 @@ function deleteUserTransports(user_id, room_id) {
 }
 
 function findCurrentUserRoomId(user_id) {
-    console.log("current user roomid find", user_id);
+    console.log("MEDIA: current user roomid find", user_id);
     for (let i = 0; i < broadcasters.length; i++) {
     console.log(broadcasters[i].producers);
         if (broadcasters[i].producers.has(user_id)) {
@@ -269,7 +286,7 @@ module.exports = {
     connectTransport: connectTransport,
     produceTransport: createTransportProducer,
     getRoomActiveUsers: getRoomActiveUsers,
-    getUserRoomProducer: getUserRoomProducer,
+    getUserRoomProducers: getUserRoomProducers,
     createTransportConsumer: createTransportConsumer,
     resumeConsumer: resumeConsumer,
     deleteUserTransports: deleteUserTransports,
