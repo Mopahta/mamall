@@ -10,6 +10,7 @@ import Index from './routes/Index';
 import Login from './routes/Login';
 import Signup from './routes/Signup';
 import { RoomUsersContext } from './context/RoomUsersContext';
+import {UserRoomContext} from "./context/UserRoomContext";
 
 function App () {
 
@@ -24,6 +25,8 @@ function App () {
     });
 
     const [roomUsers, setRoomUsers] = useState([]);
+
+    // TODO: refactor to use map
     const [userWebcamTracks, setUserWebcamTracks] = useState([]);
 
     const changeRoomUsers = useCallback((roomUsers) => {
@@ -62,6 +65,11 @@ function App () {
         userWebcamTracks,
         changeUsersTracks
     }), [roomUsers, changeRoomUsers, userWebcamTracks, changeUsersTracks]);
+
+    const userRoomContext = useMemo(() => ({
+        room,
+        setRoom
+    }), [room, setRoom])
 
     const leaveRoom = async (room_id) => {
         console.log("changing room from", room_id);
@@ -561,13 +569,15 @@ function App () {
         <div style={{padding: "50px"}}>    
             <Header user={user} setUser={setUser}/>
         <RoomUsersContext.Provider value={usersContext}>
-        <Routes>
-                <Route index path="/" element={<Index user={user} socket={socket.current} room={room}
-                                                      changeRoom={changeRoom} audioTrack={audioTrack.current} webcamTrack={webcamTrack.current} />} />
-            <Route path="login" element={<Login user={user} setUser={setUser}/>} />
-            <Route path="signup" element={<Signup user={user} setUser={setUser}/>} />
-            <Route path="*" element={<Error message={"Page not found"} />} />
-        </Routes>
+            <UserRoomContext.Provider value={userRoomContext}>
+                <Routes>
+                    <Route index path="/" element={<Index user={user} socket={socket.current} room={room}
+                                                          changeRoom={changeRoom} audioTrack={audioTrack.current} webcamTrack={webcamTrack.current} />} />
+                    <Route path="login" element={<Login user={user} setUser={setUser}/>} />
+                    <Route path="signup" element={<Signup user={user} setUser={setUser}/>} />
+                    <Route path="*" element={<Error message={"Page not found"} />} />
+                </Routes>
+            </UserRoomContext.Provider>
         </RoomUsersContext.Provider>
         </div>
     );
