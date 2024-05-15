@@ -139,7 +139,6 @@ async function createTransportProducer(room_id, transportId, userId, kind, rtpPa
         
         let producers = roomRouter.producers.get(userId);
 
-        // DONE TODO: investigate where to delete producers
         if (producers != null) {
             let producersToClose = producers.filter(producer => producer.appData.streamType === appData.streamType);
             producersToClose.forEach(producer => producer.close())
@@ -152,7 +151,6 @@ async function createTransportProducer(room_id, transportId, userId, kind, rtpPa
         console.log("MEDIA: creating transport producer", producerId);
         let producer = await routerTransport.webRtcTransport.produce({ id: producerId, kind, rtpParameters, appData });
 
-        // DONE TODO: user can have 1+ producers now
         producers.push(producer);
         roomRouter.producers.set(userId, producers);
 
