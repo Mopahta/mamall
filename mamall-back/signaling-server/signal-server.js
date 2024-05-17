@@ -16,13 +16,13 @@ mediaServer.init();
 let connectedUsers = [];
 
 var server = http.createServer(function(request, response) {
-    console.log((new Date()) + ' Received request for ' + request.url);
+    console.log('SIGNAL: ' + (new Date()) + ' Received request for ' + request.url);
     response.writeHead(404);
     response.end();
 });
 
 server.listen(config.wsport, function() {
-    console.log((new Date()) + ` Server is listening on port ${config.wsport}`);
+    console.log('SIGNAL: ' + (new Date()) + ` Server is listening on port ${config.wsport}`);
 });
 
 let wsServer = new WebSocketServer({
@@ -31,7 +31,7 @@ let wsServer = new WebSocketServer({
 });
 
 function originIsAllowed(origin) {
-    console.log("Origin:", origin);
+    console.log("SIGNAL: Origin:", origin);
     if (config.origins.includes(origin)) {
         return true;
     }
@@ -63,7 +63,7 @@ wsServer.on('request', function(request) {
 
     if (!originIsAllowed(request.origin)) {
         request.reject();
-        console.log((new Date()) + ' Connection from origin ' + request.origin + ' rejected.');
+        console.log('SIGNAL: ' + (new Date()) + ' Connection from origin ' + request.origin + ' rejected.');
         return;
     }
     
@@ -90,7 +90,7 @@ wsServer.on('request', function(request) {
         return;
     }
 
-    console.log((new Date()) + ` ${user.username} Connection accepted.`);
+    console.log('SIGNAL: ' + (new Date()) + ` ${user.username} Connection accepted.`);
 });
 
 wsServer.on('connect', function(connection) {
@@ -120,12 +120,12 @@ wsServer.on('connect', function(connection) {
             }
         }
         else if (message.type === 'binary') {
-            console.log('Received Binary Message of ' + message.binaryData.length + ' bytes');
+            console.log('SIGNAL: Received Binary Message of ' + message.binaryData.length + ' bytes');
         }
     })
 
     connection.on('close', function(reasonCode, description) {
-        console.log(new Date() + ' Peer ' + connection.remoteAddress + ' disconnected.');
+        console.log('SIGNAL: ' + new Date() + ' Peer ' + connection.remoteAddress + ' disconnected.');
         let user = shared.findUserByConnection(connectedUsers, connection);
         if (user) {
             handleUserRoomLeave({user_id: user.user_id, payload: {}});
@@ -170,12 +170,12 @@ function checkConnectionAvailability() {
     connectedUsers = shared.deleteOldConnections(connectedUsers);
     setTimeout(checkConnectionAvailability, 60 * 1000);
 
-    console.log(`${new Date()} Connections amount: ${connectedUsers.length}`);
+    console.log(`SIGNAL: ${new Date()} Connections amount: ${connectedUsers.length}`);
 }
 
 // type: 1
 async function callRoom(data) {
-    console.log(data);
+    console.log("SIGNAL: call room ", data);
 
     let res = {
         type: 2,
@@ -231,6 +231,7 @@ async function callRoom(data) {
 
 // type: 2
 async function createMediaTransport(data) {
+    console.log("SIGNAL: createMediaTransport ", data);
     if (data.payload.room_id == null) {
         return;
     }
@@ -248,6 +249,7 @@ async function createMediaTransport(data) {
 
 // type: 3
 async function transportConnect(data) {
+    // console.log("SIGNAL: transportConnect ", data);
     await mediaServer.connectTransport(
         data.payload.room_id,
         data.payload.transportId,
@@ -257,18 +259,20 @@ async function transportConnect(data) {
 
 // type: 4
 async function getOnProduce(data) {
+    console.log("SIGNAL: getOnProduce ", data);
     let producerId = await mediaServer.produceTransport(
         data.payload.room_id,
         data.payload.transportId,
         data.user_id,
         data.payload.kind,
-        data.payload.rtpParameters
+        data.payload.rtpParameters,
+        data.payload.appData
     )
 
     if (producerId != null) {
         let userIds = mediaServer.getRoomActiveUsers(data.payload.room_id);
 
-        console.log(`active users in room ${data.payload.room_id} ${userIds}`);
+        console.log(`SIGNAL: active users in room ${data.payload.room_id} ${userIds}`);
 
         let users = await db.getUsersRoomInfo(data.payload.room_id, userIds);
 
@@ -292,15 +296,21 @@ async function getOnProduce(data) {
                         room_id: data.payload.room_id,
                         producer_id: producerId,
                         new_user_id: data.user_id,
-                        user: callerInfo
+                        user: callerInfo,
+                        stream_type: data.payload.appData.streamType
                     }
     
                     console.log(message);
                     userWS.connection.sendUTF(JSON.stringify(message));
-                    let userProducer = mediaServer.getUserRoomProducer(data.payload.room_id, user.user_id);
+                    // TODO: userProducer is now an array of producers
+                    let userProducers = mediaServer.getUserRoomProducers(data.payload.room_id, user.user_id);
     
-                    if (userProducer != null) {
-                        user.producer_id = userProducer.id;
+                    if (userProducers != null) {
+                        let producers = []
+                        userProducers.forEach(userProducer => {
+                            producers.push({producer_id: userProducer.id, stream_type: userProducer.appData.streamType})
+                        })
+                        user.producers = producers;
                     }
                 }
             }
@@ -310,6 +320,9 @@ async function getOnProduce(data) {
         })
 
         res.users = users;
+        if (data.payload.appData.streamType !== 'audio') {
+            return;
+        }
 
         return res;
     }
@@ -319,13 +332,15 @@ async function getOnProduce(data) {
 
 // type: 5
 async function consumeProducer(data) {
+    console.log("SIGNAL: consumeProducer ", data);
 
     let consumer = await mediaServer.createTransportConsumer(
         data.payload.room_id, data.user_id, data.payload.new_user_id,
-        data.payload.transportId, data.payload.rtpCapabilities
+        data.payload.transportId, data.payload.rtpCapabilities, data.payload.stream_type
     )
 
     if (consumer != null) {
+        // console.log("SIGNAL: consumeProducer consumer ", consumer);
         return {
             type: 6,
             conn_user_id: data.payload.new_user_id,
@@ -337,20 +352,21 @@ async function consumeProducer(data) {
 
 // type: 6
 async function resumeConsumer(data) {
+    console.log("SIGNAL: resumeConsumer ", data);
     mediaServer.resumeConsumer(data.payload.room_id, data.payload.consumer_id);
 }
 
 // type: 7
 async function handleUserRoomLeave(data) {
-    console.log("type7 ", data);
+    console.log("SIGNAL: handleUserRoomLeave ", data);
 
     if (data.payload.room_id == null) {
         data.payload.room_id = mediaServer.findCurrentUserRoomId(data.user_id);
         if (data.payload.room_id == null) {
-            console.log(`user ${data.user_id} room not found`);
+            console.log(`SIGNAL: user ${data.user_id} room not found`);
             return;
         }
-        console.log("found user room", data.payload.room_id);
+        console.log("SIGNAL: found user room", data.payload.room_id);
     }
     
     mediaServer.deleteUserTransports(data.user_id, data.payload.room_id);

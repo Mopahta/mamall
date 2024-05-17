@@ -10,6 +10,7 @@ import Index from './routes/Index';
 import Login from './routes/Login';
 import Signup from './routes/Signup';
 import { RoomUsersContext } from './context/RoomUsersContext';
+import {UserRoomContext} from "./context/UserRoomContext";
 
 function App () {
 
@@ -25,8 +26,25 @@ function App () {
 
     const [roomUsers, setRoomUsers] = useState([]);
 
+    // TODO: refactor to use map
+    const [userWebcamTracks, setUserWebcamTracks] = useState([]);
+
     const changeRoomUsers = useCallback((roomUsers) => {
         setRoomUsers(roomUsers)
+    }, []);
+
+    const changeUsersTracks = useCallback((usersTracks) => {
+        setUserWebcamTracks(usersTracks)
+    }, []);
+
+    const addUserVideoTrack = useCallback((userId, webcamTrack) => {
+        setUserWebcamTracks(userWebcamTracks => {
+            let userWebcamTracks2 = Array(userWebcamTracks.length);
+            userWebcamTracks[userId] = webcamTrack;
+            let i = userWebcamTracks.length;
+            while (i--) userWebcamTracks2[i] = userWebcamTracks[i];
+            return userWebcamTracks2;
+        })
     }, []);
 
     const addRoomUser = useCallback((roomUser) => {
@@ -43,8 +61,15 @@ function App () {
 
     const usersContext = useMemo(() => ({
         roomUsers,
-        changeRoomUsers
-    }), [roomUsers, changeRoomUsers]);
+        changeRoomUsers,
+        userWebcamTracks,
+        changeUsersTracks
+    }), [roomUsers, changeRoomUsers, userWebcamTracks, changeUsersTracks]);
+
+    const userRoomContext = useMemo(() => ({
+        room,
+        setRoom
+    }), [room, setRoom])
 
     const leaveRoom = async (room_id) => {
         console.log("changing room from", room_id);
@@ -72,11 +97,16 @@ function App () {
     }, [setRoom]);
 
     let socket = useRef(null);
+
     let audioTrack = useRef(null);
+    let webcamTrack = useRef(null);
+    let broadcastTrack = useRef(null);
+
     let mediaDevice = useRef(null);
     let sendTransport = useRef(null);
     let receiveTransport = useRef(null);
     let audioProducer = useRef(null);
+    let webcamProducer = useRef(null);
 
     const setSocket = useCallback((sock) => {
         socket.current = sock;
@@ -254,7 +284,17 @@ function App () {
             }
         }
 
-        if (audioTrack.current != null) {
+        if (webcamTrack.current == null) {
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+                webcamTrack.current = stream.getVideoTracks()[0];
+            }
+            catch (err) {
+                console.error(err);
+            }
+        }
+
+        if (audioTrack.current != null | webcamTrack.current != null) {
             await setOnProduce();
         }
     }
@@ -273,15 +313,30 @@ function App () {
             socket.current.send(JSON.stringify(message));
             console.log("creating producer");
 
-            callback({ id: "" + sendTransport.current.appData.roomId + user.user_id + 1 });
+            callback({ id: appData.streamType + sendTransport.current.appData.roomId + user.user_id + 1 });
         });
         
-        audioProducer.current = await sendTransport.current.produce({ track: audioTrack.current });
+        audioProducer.current = await sendTransport.current.produce(
+            {
+                track: audioTrack.current,
+                appData: {streamType: "audio"}
+            });
+
+        webcamProducer.current = await sendTransport.current.produce(
+            {
+                track: webcamTrack.current,
+                codec: mediaDevice.current.rtpCapabilities.codecs
+                    .find((codec) => codec.mimeType.toLowerCase() === 'video/h264'),
+                appData: {streamType: "webcam"}
+            });
+
     }
 
     // type: 4
     async function consumeNewUser(data) {
-        console.log("consuming new user");
+        console.log(data)
+        console.log(`consuming new user stream_type: ${data.stream_type}`);
+        console.log(data.stream_type);
 
         let message = {
             type: 5,
@@ -289,12 +344,15 @@ function App () {
             room_id: data.room_id,
             producer_id: data.producerId,
             new_user_id: data.new_user_id,
+            stream_type: data.stream_type,
             rtpCapabilities: mediaDevice.current.rtpCapabilities,
         };
 
         socket.current.send(JSON.stringify(message));
 
-        addRoomUser(data.user);
+        if (data.stream_type === 'audio') {
+            addRoomUser(data.user);
+        }
     }
 
     // type: 5
@@ -303,16 +361,19 @@ function App () {
 
         data.users.forEach(userP => {
             if (userP.user_id !== user.user_id) {
-                let message = {
-                    type: 5,
-                    transportId: receiveTransport.current.id,
-                    room_id: data.room_id,
-                    producer_id: userP.producer_id,
-                    new_user_id: userP.user_id,
-                    rtpCapabilities: mediaDevice.current.rtpCapabilities,
-                };
-        
-                socket.current.send(JSON.stringify(message));
+                for (let i = 0; i < userP.producers.length; i++) {
+                    let message = {
+                        type: 5,
+                        transportId: receiveTransport.current.id,
+                        room_id: data.room_id,
+                        producer_id: userP.producers[i].producer_id,
+                        new_user_id: userP.user_id,
+                        stream_type: userP.producers[i].stream_type,
+                        rtpCapabilities: mediaDevice.current.rtpCapabilities,
+                    };
+
+                    socket.current.send(JSON.stringify(message));
+                }
             }
         });
 
@@ -321,7 +382,7 @@ function App () {
 
     // type: 6
     async function newConsumer(data) {
-        console.log("new consumer creation");
+        console.log(`new consumer creation on producer ${data.consumer.producerId} on consumer ${data.consumer.id}`);
         const consumer = await receiveTransport.current.consume(
         {
             id            : data.consumer.id,
@@ -332,16 +393,23 @@ function App () {
 
         const { track } = consumer;
 
-        var sound = document.createElement('audio');
-        sound.id = 'audio-player-' + data.conn_user_id;
-        sound.controls = 'controls';
-        sound.srcObject = new MediaStream([ track ]);
-        sound.type = 'audio/mpeg';
+        switch (data.consumer.streamType) {
+            case "audio":
+                var sound = document.createElement('audio');
+                sound.id = 'audio-player-' + data.conn_user_id;
+                sound.controls = 'controls';
+                sound.srcObject = new MediaStream([track]);
+                sound.type = 'audio/mpeg';
+                // document.getElementById('users-audios').appendChild(sound);
 
-        // document.getElementById('users-audios').appendChild(sound);
-
-        sound.play()
-        // let audioElem = document.querySelector("audio");
+                sound.play()
+            // let audioElem = document.querySelector("audio");
+                break;
+            case "webcam":
+                console.log("webcam consumer on producer " + data.consumer.producerId);
+                addUserVideoTrack(data.conn_user_id, new MediaStream([track]));
+                break;
+        }
 
         let message = {
             type: 6,
@@ -366,11 +434,13 @@ function App () {
         }
         audioTrack.current = null;
         audioProducer.current = null;
+        webcamTrack.current = null;
+        webcamProducer.current = null;
+        setUserWebcamTracks([]);
         // document.getElementById("audio-player-" + user.user_id).remove();
     }
 
-    // TODO:
-    // if the page reloaded after the call can't create producer on back 
+    // TODO: if the page reloaded after the call can't create producer on back
 
     // type: 8
     async function userDiscFromRoom(data) {
@@ -499,12 +569,15 @@ function App () {
         <div style={{padding: "50px"}}>    
             <Header user={user} setUser={setUser}/>
         <RoomUsersContext.Provider value={usersContext}>
-        <Routes>
-                <Route index path="/" element={<Index user={user} socket={socket.current} room={room} changeRoom={changeRoom}/>} />
-            <Route path="login" element={<Login user={user} setUser={setUser}/>} />
-            <Route path="signup" element={<Signup user={user} setUser={setUser}/>} />
-            <Route path="*" element={<Error message={"Page not found"} />} />
-        </Routes>
+            <UserRoomContext.Provider value={userRoomContext}>
+                <Routes>
+                    <Route index path="/" element={<Index user={user} socket={socket.current} room={room}
+                                                          changeRoom={changeRoom} audioTrack={audioTrack.current} webcamTrack={webcamTrack.current} />} />
+                    <Route path="login" element={<Login user={user} setUser={setUser}/>} />
+                    <Route path="signup" element={<Signup user={user} setUser={setUser}/>} />
+                    <Route path="*" element={<Error message={"Page not found"} />} />
+                </Routes>
+            </UserRoomContext.Provider>
         </RoomUsersContext.Provider>
         </div>
     );

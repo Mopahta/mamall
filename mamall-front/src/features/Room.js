@@ -4,7 +4,7 @@ import Error from "../common/Error";
 import RoomUsers from "./RoomUsers";
 import RoomContent from "./RoomContent";
 
-const Room = memo(function Room({user, room, socket, setRoom}) {
+const Room = memo(function Room({user, room, socket, setRoom, audioTrack, webcamTrack}) {
     const [error, setError] = useState(null);
     const [isLoaded, setIsLoaded] = useState(false);
     const [items, setItems] = useState([]);
@@ -18,6 +18,34 @@ const Room = memo(function Room({user, room, socket, setRoom}) {
         }, room.roomId);
     }
 
+    const toggleMute = async () => {
+
+        console.log(audioTrack.enabled);
+
+        if (audioTrack.enabled) {
+            audioTrack.enabled = false;
+
+            document.getElementById("mute-microphone").classList.add("positive");
+        } else {
+            audioTrack.enabled = true;
+
+            document.getElementById("mute-microphone").classList.remove("positive");
+        }
+
+    }
+
+    const toggleWebcam = async () => {
+        console.log("webcam.enabled", webcamTrack.enabled);
+
+        if (webcamTrack.enabled) {
+            webcamTrack.enabled = false;
+
+            document.getElementById("webcam-status").classList.remove("positive");
+        } else {
+            webcamTrack.enabled = true;
+            document.getElementById("webcam-status").classList.add("positive");
+        }
+    }
     return (
         <div className="ui segment">
             {room.roomId != 0 ?
@@ -32,20 +60,23 @@ const Room = memo(function Room({user, room, socket, setRoom}) {
                             </div>
                         </div>
                 <div className="ui center aligned container" >
-                        <div className="huge ui buttons">
-                            <div className="ui basic icon button">
-                                <i className="microphone slash icon" />
-                            </div>
-                            <div className="ui basic icon button" onClick={() => leaveRoom()}>
-                                <i className="x icon" />
-                            </div>
+                    <div className="huge ui buttons">
+                        <div className="ui basic icon button" id="mute-microphone" onClick={() => toggleMute()}>
+                            <i className="microphone slash icon"/>
                         </div>
+                        <div className="ui basic icon button positive" id="webcam-status" onClick={() => toggleWebcam()}>
+                            <i className="video icon"/>
                         </div>
+                        <div className="ui basic icon button" onClick={() => leaveRoom()}>
+                            <i className="x icon"/>
+                        </div>
+                    </div>
                 </div>
-            :
-            <div className="segment eight wide column">
+                </div>
+                :
+                <div className="segment eight wide column">
                     <h3>No room chosen.</h3>
-            </div>
+                </div>
             }
         </div>
     )

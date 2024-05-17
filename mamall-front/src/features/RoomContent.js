@@ -1,6 +1,6 @@
-import { useContext } from "react";
+import {useContext} from "react";
 import { RoomUsersContext } from "../context/RoomUsersContext";
-import noUserIcon from './null.jpg';
+import RoomContentUserCard from "./RoomContentUserCard";
 
 function RoomContent({user, room, socket}) {
 
@@ -9,26 +9,17 @@ function RoomContent({user, room, socket}) {
     const vPomoechku = async (user) => {
         console.log(usersContext.roomUsers);
         console.log(user);
-    } 
+    }
 
     return (
 
         <>
-
         {usersContext.roomUsers != null?
             usersContext.roomUsers.length !== 0?
                 <div className="ui relaxed stackable equal width grid">
                 {usersContext.roomUsers.map(item => 
                     <div className="column" key={item.user_id}>
-                        <div className="ui brown inverted segment">
-                            <div className="right floated content">
-                            </div>
-                            <img className="ui avatar image" src={noUserIcon} alt="room-user"></img>
-                            <div className="content">
-                                <a className="header">{item.username}</a>
-                                <div className="description">{item.user_room_nickname + " " + item.description}</div>
-                            </div>
-                        </div>
+                        <RoomContentUserCard roomUser={item} />
                     </div>
                 )}
                 </div>

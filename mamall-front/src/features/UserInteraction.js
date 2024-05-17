@@ -3,6 +3,7 @@ import * as config from "../config/config";
 import Contacts from "./Contacts";
 import Pending from "./Pending";
 import Rooms from "./Rooms";
+import CodeEditor from "./CodeEditor";
 
 const UserInteraction = memo(function UserInteraction({user, setRoom, socket}) {
 
@@ -12,6 +13,8 @@ const UserInteraction = memo(function UserInteraction({user, setRoom, socket}) {
         contacts: 0,
         rooms: 1,
         pending: 2,
+        editor: 3,
+        board: 4,
     }
 
     function RenderOption(props) {
@@ -25,6 +28,12 @@ const UserInteraction = memo(function UserInteraction({user, setRoom, socket}) {
         }
         else if (chosenOption === chosen.pending) {
             return <Pending user={props.user} />
+        }
+        else if (chosenOption === chosen.editor) {
+            return <CodeEditor/>
+        }
+        else if (chosenOption === chosen.board) {
+            return <CodeEditor/>
         }
     }
 
@@ -102,8 +111,16 @@ const UserInteraction = memo(function UserInteraction({user, setRoom, socket}) {
 
     return (
         <div className="ui segment">
+            <div className="ui secondary two item menu">
+                <a className="item" id="option-3" onClick={() => changeOption(chosen.editor)}>
+                    Code Editor
+                </a>
+                <a className="item" id="option-4" onClick={() => changeOption(chosen.board)}>
+                    Drawing Board
+                </a>
+            </div>
             <div className="ui secondary three item menu">
-                <a className="item" id="option-0" onClick={() => changeOption(chosen.contacts)} >
+                <a className="item" id="option-0" onClick={() => changeOption(chosen.contacts)}>
                     Contacts
                 </a>
                 <a className="item" id="option-1" onClick={() => changeOption(chosen.rooms)}>

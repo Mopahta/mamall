@@ -5,10 +5,10 @@ const jwt = require('jsonwebtoken');
 const bcrypt = require('bcrypt');
 const cookieParser = require('cookie-parser');
 
-const db = require('../db/db');
+const db = require('../../db/db');
 const config = require('./config/config');
 
-const { jwtSecret } = require('../secret');
+const { jwtSecret } = require('../../secret');
 
 const saltRounds = 8;
 

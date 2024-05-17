@@ -4,7 +4,7 @@ import Room from "../features/Room";
 import { Route, Routes } from "react-router-dom";
 import UserInteraction from "../features/UserInteraction";
 
-const Index = memo(function Index({user, socket, room, changeRoom}) {
+const Index = memo(function Index({user, socket, room, changeRoom, audioTrack, webcamTrack}) {
 
     return (
         <div className="ui vertically padded stackable grid">
@@ -12,17 +12,18 @@ const Index = memo(function Index({user, socket, room, changeRoom}) {
                 {user.auth?
                 <UserInteraction user={user} setRoom={changeRoom} socket={socket} />
                 :
-                <Error message={"Sign in to see contacts"} />
+                <Error message={"Log in to see contacts."} />
                 }
 
             </div>
             <div className="ten wide computer sixteen wide tablet column">
                 {user.auth?
                 <Routes>
-                    <Route path="/" element={<Room user={user} room={room} socket={socket} setRoom={changeRoom} />} />
+                    <Route path="/" element={<Room user={user} room={room} socket={socket}
+                                                   setRoom={changeRoom} audioTrack={audioTrack} webcamTrack={webcamTrack} />} />
                 </Routes>
                 :
-                <Error message={"Sign in to use room."} />
+                <Error message={"Log in to use rooms."} />
                 }
             </div>
         </div>
