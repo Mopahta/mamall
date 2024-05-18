@@ -1,40 +1,720 @@
-body {
-	margin: auto;
-	width: 100%;
+/* Full height */
+html, body, .auth, .no-acc {
 	height: 100%;
+}
+
+/* Auto margin */
+body, .header, .auth, .no-acc {
+	margin: auto;
+}
+
+/* Full width */
+body, .header {
+	width: 100%;
+}
+
+/* White background */
+body, .button-base:hover {
 	background: rgba(255, 255, 255);
 }
 
-html {
-  height: 100%;
+/* Absolute position */
+.auth, .no-acc, .header {
+	position: absolute;
 }
 
-.header {
-	margin: auto;
-	width: 100%;
+.header, .button-base {
+	z-index: auto;
 	background: linear-gradient(to right, rgba(16, 131, 83), 
 		rgba(16, 111, 142));
 }
 
-.login {
-	margin: auto;
+.auth {
 	width: 60%;
-	height: 100%;
-	position: absolute;
 	left: 0px;
 	bottom: 0px;
 	background: linear-gradient(rgba(16, 131, 83), 
 		rgba(16, 111, 142));
 }
 
-.sign-up{
-	margin: auto;
+.no-acc {
 	width: 40%;
-	height: 100%;
-	position: absolute;
 	right: 0px;
 	bottom: 0px;
 	background: linear-gradient(rgba(255, 255, 255), 
 		rgba(160, 255, 232));
 }
 
+.button-base {
+	border: none;
+	padding: 20px 20px;
+	text-align: center;
+	text-decoration: none;
+	display: inline-block;
+	font-size: 16px;
+	border-radius: 4px;
+	transition-duration: 0.5s;
+}
+
+.text-input-base {
+	background: linear-gradient(rgba(195, 255, 226),
+		rgba(208,255,247));
+	border-radius: 4px;
+}
+
+/* Rectangle 14 */
+
+position: absolute;
+width: 1440px;
+height: 1024px;
+left: 0px;
+top: 0px;
+
+background: linear-gradient(180deg, #108353 0.01%, #10738D 100%);
+
+
+/* Rectangle 12 */
+
+position: absolute;
+width: 469px;
+height: 117px;
+left: 0px;
+top: 0px;
+
+background: linear-gradient(90deg, #108353 0%, #106F8E 100%);
+
+
+/* Rectangle 57 */
+
+position: absolute;
+width: 469px;
+height: 907px;
+left: 0px;
+top: 117px;
+
+background: #D9D9D9;
+
+
+/* Group 24 */
+
+position: absolute;
+width: 896px;
+height: 925px;
+left: 503px;
+top: 125px;
+
+
+
+/* Group 19 */
+
+position: absolute;
+width: 469px;
+height: 893px;
+left: 0px;
+top: 131px;
+
+
+
+/* By participant amount */
+
+position: absolute;
+width: 403px;
+height: 55px;
+left: 763px;
+top: 143px;
+
+font-family: 'Red Hat Display';
+font-style: normal;
+font-weight: 700;
+font-size: 32px;
+line-height: 42px;
+text-align: center;
+letter-spacing: 0.05em;
+
+color: #144453;
+
+
+
+/* Contacts list */
+
+position: absolute;
+width: 236px;
+height: 55px;
+left: 11px;
+top: 146px;
+
+font-family: 'Red Hat Display';
+font-style: normal;
+font-weight: 700;
+font-size: 32px;
+line-height: 42px;
+text-align: center;
+letter-spacing: 0.05em;
+
+color: #144453;
+
+
+
+/* Wait List */
+
+position: absolute;
+width: 175px;
+height: 55px;
+left: 265px;
+top: 146px;
+
+font-family: 'Red Hat Display';
+font-style: normal;
+font-weight: 700;
+font-size: 32px;
+line-height: 42px;
+text-align: center;
+letter-spacing: 0.05em;
+
+color: #144453;
+
+
+
+/* Group 23 */
+
+position: absolute;
+width: 896px;
+height: 938px;
+left: 503px;
+top: 125px;
+
+
+
+/* Rooms */
+
+position: absolute;
+width: 167px;
+height: 64px;
+left: 526px;
+top: 26px;
+
+font-family: 'Red Hat Display';
+font-style: normal;
+font-weight: 700;
+font-size: 48px;
+line-height: 64px;
+/* identical to box height */
+text-align: center;
+letter-spacing: 0.05em;
+
+color: #FFFFFF;
+
+text-shadow: 0px 4px 4px rgba(0, 0, 0, 0.25);
+
+
+/* Rectangle 32 */
+
+position: absolute;
+width: 9px;
+height: 118px;
+left: 1374px;
+top: 250px;
+
+background: #305757;
+border-radius: 20px;
+
+
+/* Rectangle 16 */
+
+position: absolute;
+width: 394px;
+height: 249px;
+left: 533px;
+top: 247px;
+
+background: linear-gradient(180deg, #1BDE8C 0%, #117A8D 100%);
+box-shadow: 0px 6px 4px rgba(0, 0, 0, 0.25);
+border-radius: 16px;
+
+
+/* R1 */
+
+position: absolute;
+width: 69px;
+height: 85px;
+left: 575px;
+top: 274px;
+
+font-family: 'Red Hat Display';
+font-style: normal;
+font-weight: 700;
+font-size: 64px;
+line-height: 85px;
+/* identical to box height */
+text-align: center;
+letter-spacing: 0.05em;
+
+color: #FFFFFF;
+
+text-shadow: 0px 4px 4px rgba(0, 0, 0, 0.25);
+
+
+/* Rectangle 42 */
+
+position: absolute;
+width: 394px;
+height: 249px;
+left: 966px;
+top: 247px;
+
+background: linear-gradient(180deg, #F2C143 0%, #C34D1A 100%);
+box-shadow: 0px 6px 4px rgba(0, 0, 0, 0.25);
+border-radius: 16px;
+
+
+/* R2 */
+
+position: absolute;
+width: 84px;
+height: 85px;
+left: 1010px;
+top: 274px;
+
+font-family: 'Red Hat Display';
+font-style: normal;
+font-weight: 700;
+font-size: 64px;
+line-height: 85px;
+/* identical to box height */
+text-align: center;
+letter-spacing: 0.05em;
+
+color: #FFFFFF;
+
+text-shadow: 0px 4px 4px rgba(0, 0, 0, 0.25);
+
+
+/* Rectangle 43 */
+
+position: absolute;
+width: 394px;
+height: 249px;
+left: 533px;
+top: 525px;
+
+background: linear-gradient(180deg, #5F5CE6 0%, #8239AF 100%);
+box-shadow: 0px 6px 4px rgba(0, 0, 0, 0.25);
+border-radius: 16px;
+
+
+/* R3 */
+
+position: absolute;
+width: 87px;
+height: 85px;
+left: 579px;
+top: 552px;
+
+font-family: 'Red Hat Display';
+font-style: normal;
+font-weight: 700;
+font-size: 64px;
+line-height: 85px;
+/* identical to box height */
+text-align: center;
+letter-spacing: 0.05em;
+
+color: #FFFFFF;
+
+text-shadow: 0px 4px 4px rgba(0, 0, 0, 0.25);
+
+
+/* Rectangle 44 */
+
+position: absolute;
+width: 394px;
+height: 249px;
+left: 966px;
+top: 525px;
+
+background: linear-gradient(180deg, #1BC7DE 0%, #11598D 100%);
+box-shadow: 0px 6px 4px rgba(0, 0, 0, 0.25);
+border-radius: 16px;
+
+
+/* R4 */
+
+position: absolute;
+width: 90px;
+height: 85px;
+left: 1012px;
+top: 552px;
+
+font-family: 'Red Hat Display';
+font-style: normal;
+font-weight: 700;
+font-size: 64px;
+line-height: 85px;
+/* identical to box height */
+text-align: center;
+letter-spacing: 0.05em;
+
+color: #FFFFFF;
+
+text-shadow: 0px 4px 4px rgba(0, 0, 0, 0.25);
+
+
+/* Rectangle 45 */
+
+position: absolute;
+width: 394px;
+height: 249px;
+left: 533px;
+top: 803px;
+
+background: linear-gradient(180deg, #FB6CB9 0%, #763AD9 100%);
+box-shadow: 0px 6px 4px rgba(0, 0, 0, 0.25);
+border-radius: 16px;
+
+
+/* Rectangle 58 */
+
+position: absolute;
+width: 394px;
+height: 249px;
+left: 963px;
+top: 803px;
+
+background: #EEEEEE;
+box-shadow: 0px 6px 4px rgba(0, 0, 0, 0.25);
+border-radius: 16px;
+
+
+/* R5 */
+
+position: absolute;
+width: 86px;
+height: 85px;
+left: 578px;
+top: 830px;
+
+font-family: 'Red Hat Display';
+font-style: normal;
+font-weight: 700;
+font-size: 64px;
+line-height: 85px;
+/* identical to box height */
+text-align: center;
+letter-spacing: 0.05em;
+
+color: #FFFFFF;
+
+text-shadow: 0px 4px 4px rgba(0, 0, 0, 0.25);
+
+
+/* Group 18 */
+
+position: absolute;
+width: 99px;
+height: 99px;
+left: 185px;
+top: 871px;
+
+filter: drop-shadow(0px 4px 4px rgba(0, 0, 0, 0.25));
+
+
+/* Group 36 */
+
+position: absolute;
+width: 99px;
+height: 99px;
+left: 1113px;
+top: 901px;
+
+
+
+/* Group 25 */
+
+position: absolute;
+width: 47px;
+height: 52.07px;
+left: 787px;
+top: 290px;
+
+filter: drop-shadow(0px 4px 4px rgba(0, 0, 0, 0.25));
+
+
+/* Group 43 */
+
+position: absolute;
+width: 391px;
+height: 128px;
+left: 39px;
+top: 247px;
+
+
+
+/* Group 44 */
+
+position: absolute;
+width: 391px;
+height: 128px;
+left: 39px;
+top: 397px;
+
+
+
+/* Group 45 */
+
+position: absolute;
+width: 391px;
+height: 128px;
+left: 39px;
+top: 547px;
+
+
+
+/* Group 46 */
+
+position: absolute;
+width: 391px;
+height: 128px;
+left: 39px;
+top: 697px;
+
+
+
+/* 5 */
+
+position: absolute;
+width: 39px;
+height: 85px;
+left: 845px;
+top: 274px;
+
+font-family: 'Red Hat Display';
+font-style: normal;
+font-weight: 700;
+font-size: 64px;
+line-height: 85px;
+/* identical to box height */
+text-align: center;
+letter-spacing: 0.05em;
+
+color: #FFFFFF;
+
+text-shadow: 0px 4px 4px rgba(0, 0, 0, 0.25);
+
+
+/* Group 30 */
+
+position: absolute;
+width: 47px;
+height: 52.07px;
+left: 787px;
+top: 568px;
+
+filter: drop-shadow(0px 4px 4px rgba(0, 0, 0, 0.25));
+
+
+/* 2 */
+
+position: absolute;
+width: 37px;
+height: 85px;
+left: 846px;
+top: 552px;
+
+font-family: 'Red Hat Display';
+font-style: normal;
+font-weight: 700;
+font-size: 64px;
+line-height: 85px;
+/* identical to box height */
+text-align: center;
+letter-spacing: 0.05em;
+
+color: #FFFFFF;
+
+text-shadow: 0px 4px 4px rgba(0, 0, 0, 0.25);
+
+
+/* Group 31 */
+
+position: absolute;
+width: 47px;
+height: 52.07px;
+left: 1225px;
+top: 290px;
+
+filter: drop-shadow(0px 4px 4px rgba(0, 0, 0, 0.25));
+
+
+/* 1 */
+
+position: absolute;
+width: 23px;
+height: 85px;
+left: 1291px;
+top: 274px;
+
+font-family: 'Red Hat Display';
+font-style: normal;
+font-weight: 700;
+font-size: 64px;
+line-height: 85px;
+/* identical to box height */
+text-align: center;
+letter-spacing: 0.05em;
+
+color: #FFFFFF;
+
+text-shadow: 0px 4px 4px rgba(0, 0, 0, 0.25);
+
+
+/* Group 32 */
+
+position: absolute;
+width: 47px;
+height: 52.07px;
+left: 1225px;
+top: 568px;
+
+filter: drop-shadow(0px 4px 4px rgba(0, 0, 0, 0.25));
+
+
+/* 4 */
+
+position: absolute;
+width: 44px;
+height: 85px;
+left: 1280px;
+top: 552px;
+
+font-family: 'Red Hat Display';
+font-style: normal;
+font-weight: 700;
+font-size: 64px;
+line-height: 85px;
+/* identical to box height */
+text-align: center;
+letter-spacing: 0.05em;
+
+color: #FFFFFF;
+
+text-shadow: 0px 4px 4px rgba(0, 0, 0, 0.25);
+
+
+/* Group 33 */
+
+position: absolute;
+width: 47px;
+height: 52.07px;
+left: 787px;
+top: 846px;
+
+filter: drop-shadow(0px 4px 4px rgba(0, 0, 0, 0.25));
+
+
+/* 5 */
+
+position: absolute;
+width: 39px;
+height: 85px;
+left: 845px;
+top: 830px;
+
+font-family: 'Red Hat Display';
+font-style: normal;
+font-weight: 700;
+font-size: 64px;
+line-height: 85px;
+/* identical to box height */
+text-align: center;
+letter-spacing: 0.05em;
+
+color: #FFFFFF;
+
+text-shadow: 0px 4px 4px rgba(0, 0, 0, 0.25);
+
+
+/* Ellipse 2 */
+
+position: absolute;
+width: 74px;
+height: 74px;
+left: 39px;
+top: 21px;
+
+background: #FFFFFF;
+box-shadow: 0px 4px 4px rgba(0, 0, 0, 0.25);
+
+
+/* Alex */
+
+position: absolute;
+width: 101px;
+height: 55px;
+left: 137px;
+top: 30px;
+
+font-family: 'Red Hat Display';
+font-style: normal;
+font-weight: 700;
+font-size: 40px;
+line-height: 53px;
+text-align: center;
+letter-spacing: 0.05em;
+
+color: #FFFFFF;
+
+text-shadow: 0px 4px 4px rgba(0, 0, 0, 0.25);
+
+
+/* Group 35 */
+
+position: absolute;
+width: 38.29px;
+height: 46px;
+left: 57px;
+top: 35px;
+
+
+
+/* Rectangle 37 */
+
+position: absolute;
+width: 64px;
+height: 64px;
+left: 366px;
+top: 26px;
+
+background: rgba(255, 255, 255, 0.5);
+box-shadow: 0px 6px 4px rgba(0, 0, 0, 0.25);
+border-radius: 16px;
+
+
+/* Vector 3 */
+
+position: absolute;
+width: 5px;
+height: 54.06px;
+left: 415.23px;
+top: 37px;
+
+background: #144453;
+transform: rotate(45deg);
+
+
+/* Mamall */
+
+position: absolute;
+width: 219px;
+height: 65px;
+left: 1243px;
+top: 36px;
+
+font-family: 'Red Hat Display';
+font-style: normal;
+font-weight: 700;
+font-size: 48px;
+line-height: 64px;
+
+color: #FFFFFF;
+
+text-shadow: 0px 4px 4px rgba(0, 0, 0, 0.25);
