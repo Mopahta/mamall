@@ -306,6 +306,14 @@ router.get("/rooms", verifyToken, upload.none(), async function (req, res) {
     res.status(200).json(userRooms);
 })
 
+router.get("/rooms/public", upload.none(), async function (req, res) {
+    console.log("get public rooms");
+
+    let rooms = await db.getPublicRoomsInfo();
+
+    res.status(200).json(rooms);
+})
+
 router.post("/login", upload.none(), async function(req, res) {
     console.log("post /login")
 

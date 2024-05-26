@@ -564,4 +564,37 @@ const config = require('../config/config');
         return users;
     }
 
+    module.exports.getPublicRoomsInfo = async function() {
+
+        if (!pool) {
+            console.error("Pool not initialized in db-rooms.")
+            return null
+        }
+
+        let users;
+        let query =  {
+            name: 'get-user-rooms-info',
+            text: `SELECT rooms.room_id, rooms.name, room_mode_id, description
+                    FROM
+                        ${config.pgschema}.rooms AS rooms
+                        INNER JOIN 
+                        ${config.pgschema}.room_modes AS room_mode
+                        ON rooms.room_mode_id = room_mode.mode_id
+                        WHERE rooms.room_mode_id <> 1`,
+            values: []
+        }
+
+        let res;
+        try {
+            res = await pool.query(query);
+
+            users = res.rows;
+        }
+        catch (err) {
+            console.error(err.stack);
+        }
+
+        return users;
+    }
+
 }());
