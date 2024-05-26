@@ -573,8 +573,10 @@ const config = require('../config/config');
 
         let users;
         let query =  {
-            name: 'get-user-rooms-info',
-            text: `SELECT rooms.room_id, rooms.name, room_mode_id, description
+            name: 'get-public-rooms-info',
+            text: `SELECT rooms.room_id, rooms.name, room_mode_id, description, 
+                          (SELECT COUNT(*) FROM ${config.pgschema}.room_user AS room_user WHERE room_user.room_id = rooms.room_id) 
+                              AS users_amount
                     FROM
                         ${config.pgschema}.rooms AS rooms
                         INNER JOIN 

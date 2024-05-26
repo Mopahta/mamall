@@ -1,8 +1,7 @@
 import { useState, memo } from "react";
-import { useParams } from "react-router-dom";
-import Error from "../common/Error";
 import RoomUsers from "./RoomUsers";
 import RoomContent from "./RoomContent";
+import '../style/Base.css';
 
 const Room = memo(function Room({user, room, socket, setRoom, audioTrack, webcamTrack}) {
     const [error, setError] = useState(null);
