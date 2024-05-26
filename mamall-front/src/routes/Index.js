@@ -3,6 +3,7 @@ import Error from "../common/Error";
 import Room from "../features/Room";
 import { Route, Routes } from "react-router-dom";
 import UserInteraction from "../features/UserInteraction";
+import RoomsList from "../features/RoomsList";
 
 const Index = memo(function Index({user, socket, room, changeRoom, audioTrack, webcamTrack}) {
 
@@ -22,8 +23,9 @@ const Index = memo(function Index({user, socket, room, changeRoom, audioTrack, w
                     <Route path="/" element={<Room user={user} room={room} socket={socket}
                                                    setRoom={changeRoom} audioTrack={audioTrack} webcamTrack={webcamTrack} />} />
                 </Routes>
+                    // <RoomsList message={"Log in to use rooms."} />
                 :
-                <Error message={"Log in to use rooms."} />
+                <RoomsList message={"Log in to use rooms."} />
                 }
             </div>
         </div>

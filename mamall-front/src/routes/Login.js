@@ -1,6 +1,7 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import {Link, useNavigate} from "react-router-dom";
 import * as config from "../config/config"
+import '../style/Login.css';
 
 function Login({user, setUser}) {
     const [errors, setErrors] = useState('')
@@ -61,34 +62,40 @@ function Login({user, setUser}) {
     }
 
     return (
-    <div className="ui vertically padded centered grid">
-        <div className="eight wide computer sixteen wide tablet column">
-            <div className="ui segment">
-                <h1>Log In</h1>
+        <div className="ui vertically padded centered grid">
+            <div className="four wide computer sixteen wide tablet column">
+                <div className="ui segment" id="left-segment">
+                    <h1>LOGIN</h1>
 
-                <form className="ui form" method="post" encType="multipart/form-data" onSubmit={formSubmit}>
-                    <div className="field">
-                        <label>Username</label>
-                        <input type="text" id="username" name="username" placeholder="Username" />
-                        <div id="error-username" className="ui pointing red basic label" style={{display: "none"}}>
-                        Please enter a value
+                    <form className="ui form" method="post" encType="multipart/form-data" onSubmit={formSubmit}>
+                        <div className="field">
+                            <label>Username</label>
+                            <input type="text" id="username" name="username" placeholder="Username"/>
+                            <div id="error-username" className="ui pointing red basic label" style={{display: "none"}}>
+                                Please enter a value
+                            </div>
                         </div>
-                    </div>
 
-                    <div className="field">
-                        <label>Password</label>
-                        <input type="password" id="password" name="password" placeholder="Password" />
-                        <div id="error-password" className="ui pointing red basic label" style={{display: "none"}}>
-                        Please enter a value
+                        <div className="field">
+                            <label>Password</label>
+                            <input type="password" id="password" name="password" placeholder="Password"/>
+                            <div id="error-password" className="ui pointing red basic label" style={{display: "none"}}>
+                                Please enter a value
+                            </div>
                         </div>
-                    </div>
 
-                    <button className="ui button" type="submit">Submit</button>
-                    <p>{errors}</p>
-                </form>
+                        <button className="ui button auth-action" type="submit">Sign In</button>
+                        <p>{errors}</p>
+                    </form>
+                </div>
+            </div>
+            <div className="four wide computer sixteen wide tablet column">
+                <div className="ui segment" id="right-segment">
+                    <h1>New Here?</h1>
+                    <Link className="ui button auth-action2" to="/signup">Sign Up!</Link>
+                </div>
             </div>
         </div>
-    </div>
     )
 }
 
