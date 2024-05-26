@@ -69,7 +69,7 @@ function Signup({user, setUser}) {
                     <h1>Sign Up</h1>
 
                     <form className="ui form" method="post" encType="multipart/form-data" onSubmit={formSubmit}>
-                        <div className="field">
+                        <div className="field login-input">
                             <label>Username (required)</label>
                             <input type="text" id="username" name="username" placeholder="Username"/>
                             <div id="error-username" className="ui pointing red basic label" style={{display: "none"}}>
@@ -77,12 +77,12 @@ function Signup({user, setUser}) {
                             </div>
                         </div>
 
-                        <div className="field">
+                        <div className="field login-input">
                             <label>Email</label>
                             <input type="email" id="email" name="email" placeholder="mail@email.com"/>
                         </div>
 
-                        <div className="field">
+                        <div className="field login-input">
                             <label>Password (required)</label>
                             <input type="password" id="password" name="password" placeholder="Password"/>
                             <div id="error-password" className="ui pointing red basic label" style={{display: "none"}}>

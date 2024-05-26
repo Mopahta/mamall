@@ -2,8 +2,13 @@ import '../logo.css';
 import 'semantic-ui-css/semantic.min.css';
 import * as config from "../config/config";
 import { Link } from 'react-router-dom';
+import {useState} from "react";
+import {Modal} from "semantic-ui-react";
+import ProfileEdit from "../features/ProfileEdit";
 
 function Header({user, setUser}) {
+
+    const [profileEditorIsOpen, setProfileEditorIsOpen] = useState(false);
 
     const handleLogout = async function (e) {
 
@@ -17,7 +22,6 @@ function Header({user, setUser}) {
         .catch(err => {
             console.log(err)
         })
-
     }
 
     return (
@@ -40,9 +44,14 @@ function Header({user, setUser}) {
                     </Link>
                     {user.auth ?
                         <>
-                            <Link className='item right' to="/me">
+                            <Link className='item right' onClick={() => setProfileEditorIsOpen(true)} >
                                 {user.name}
                             </Link>
+                            <Modal dimmer={'inverted'} open={profileEditorIsOpen}
+                                   onClose={() => setProfileEditorIsOpen(false)}>
+
+                                <ProfileEdit user={user} setUser={setUser} setProfileEditorIsOpen={setProfileEditorIsOpen} />
+                            </Modal>
                             <Link className="item">
                                 <div className="ui" type='submit' onClick={handleLogout}>
                                     Log Out

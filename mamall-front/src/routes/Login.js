@@ -68,7 +68,7 @@ function Login({user, setUser}) {
                     <h1>LOGIN</h1>
 
                     <form className="ui form" method="post" encType="multipart/form-data" onSubmit={formSubmit}>
-                        <div className="field">
+                        <div className="field login-input">
                             <label>Username</label>
                             <input type="text" id="username" name="username" placeholder="Username"/>
                             <div id="error-username" className="ui pointing red basic label" style={{display: "none"}}>
@@ -76,7 +76,7 @@ function Login({user, setUser}) {
                             </div>
                         </div>
 
-                        <div className="field">
+                        <div className="field login-input">
                             <label>Password</label>
                             <input type="password" id="password" name="password" placeholder="Password"/>
                             <div id="error-password" className="ui pointing red basic label" style={{display: "none"}}>
