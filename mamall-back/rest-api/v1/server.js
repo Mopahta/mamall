@@ -4,6 +4,7 @@ const multer = require('multer');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcrypt');
 const cookieParser = require('cookie-parser');
+const mime = require('mime-types');
 
 const db = require('../../db/db');
 const config = require('./config/config');
@@ -22,10 +23,10 @@ db.connect();
 const upload = multer({
     storage: multer.diskStorage({
         destination: function (req, file, cb) {
-            cb(null, "../concert-front/public");
+            cb(null, "../../../mamall-front/public/avatars/");
         }, 
         filename: function (req, file, cb) {
-            cb(null, req.body['concert-name'] + "." + mime.extension(file.mimetype));
+            cb(null, req.user.user_id + "." + mime.extension(file.mimetype));
         }})
 });
 
@@ -392,6 +393,131 @@ router.post("/signup", upload.none(), async function(req, res) {
             console.log("singup debug");
         }
     } 
+})
+
+router.post("/password", verifyToken, upload.none(), async function(req, res) {
+    console.log("post /password")
+
+    console.log(req.body)
+
+    let newPassword = req.body['new-password']
+    let password = req.body['password']
+
+    if (newPassword && password) {
+        if (validatePassword(newPassword) && validatePassword(password)) {
+            let userInfo = await db.getUserInfoById(req.user.user_id);
+
+            if (userInfo == null) {
+                return res.status(401).end();
+            }
+            console.log(userInfo.password);
+            let match = await bcrypt.compare(password, userInfo.password);
+
+            console.log(match)
+            if (match) {
+                bcrypt.hash(newPassword, saltRounds, async function (err, hash) {
+                    if (err) {
+                        console.error(err);
+                        return;
+                    }
+                    let status = await db.updateUserPasswordById({
+                        user_id: req.user.user_id,
+                        password: hash
+                    });
+
+                    if (!status) {
+                        console.log(`Password updated`);
+                        res.status(200).json({status: "ok"});
+                    }
+                });
+            } else {
+                res.status(401).json({status: "error", description: "Wrong password."});
+            }
+
+        }
+    }
+})
+
+router.post("/profile", verifyToken, upload.single("user_icon"), async function(req, res) {
+    console.log("post /profile")
+
+    console.log(req.body)
+
+    let username = req.body['username']
+    let password = req.body['password']
+    let email = req.body['email']
+
+    let updated = false;
+
+    if (password) {
+        if (validatePassword(password)) {
+            let userInfo = await db.getUserInfoById(req.user.user_id);
+
+            if (userInfo == null) {
+                return res.status(401).end();
+            }
+            console.log(userInfo.password);
+            let match = await bcrypt.compare(password, userInfo.password);
+
+            console.log(match)
+            if (match) {
+                token = jwt.sign({user_id: userInfo.user_id, username: username}, jwtSecret, {expiresIn: '2h'});
+                refresh_token = jwt.sign({user_id: userInfo.user_id}, jwtSecret, {expiresIn: '1d'});
+
+                console.log("token ", token);
+                console.log("refresh token", refresh_token);
+
+                if (username && validateUsername(username)) {
+                    userInfo.username = username;
+                }
+                if (email) {
+                    userInfo.email = email;
+                }
+                if (username || email) {
+                    db.updateUserInfoById(userInfo);
+                }
+
+                db.updateUserRefreshToken(userInfo.user_id, refresh_token);
+                updated = true;
+            } else {
+                res.status(401);
+                return res.json({status: "error", description: "Wrong password."}).end();
+            }
+
+            if (token) {
+                res.cookie('token', token, {maxAge: 24 * 60 * 60 * 1000, httpOnly: true });
+                res.cookie('refresh_token', refresh_token, {maxAge: 24 * 60 * 60 * 1000, httpOnly: true, path: "/api/v1/refresh"});
+                res.status(200).json({username: username, user_id: userInfo.user_id});
+            }
+        } else {
+            res.status(401);
+            return res.json({status: "error", description: "Wrong password."});
+        }
+    } else {
+        res.status(401);
+        return res.json({status: "error", description: "No password."});
+    }
+
+    if (!req.file || req.file.size === 0) {
+        console.log('No files were uploaded.');
+        if (!updated) {
+            res.status(201);
+            res.json({status: "NO_FILES_UPLOADED"});
+        }
+        return;
+    }
+
+    console.log(req.file);
+    if (!updated && req.file && !req.file.mimetype.includes("image")) {
+        res.status(415)
+        return res.json({status: "INVALID_FILE_TYPE"});
+    }
+
+    let fileId = await db.addFileInfo(req.file.path, req.file.filename)
+
+    db.updateUserIcon(req.user.user_id, fileId);
+
+    res.status(201).end();
 })
 
 function validateUsername(username) {

@@ -37,7 +37,7 @@ function ProfileEdit({user, setUser, setProfileEditorIsOpen}) {
                 }
             })
             .then(data => {
-                if (data) {
+                if (data && data.user_id && data.username) {
                     setUser({auth: true, user_id: data.user_id, name: data.username});
                 }
             })
@@ -90,7 +90,7 @@ function ProfileEdit({user, setUser, setProfileEditorIsOpen}) {
                         <div className="field edit-profile-avatar">
                             <img className="ui small rounded image" src={noUserIcon} alt="contact"></img>
                             <label className="ui button" htmlFor="file" type="button">Change photo</label>
-                            <input type="file" id="file" accept="image/png, image/jpeg" onChange={() => {
+                            <input type="file" id="file" accept="image/png, image/jpeg" name="user_icon" onChange={() => {
                                 console.log('11')
                             }}/>
                         </div>
