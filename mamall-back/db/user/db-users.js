@@ -70,8 +70,11 @@ const config = require('../config/config');
         let user;
         let query =  {
             name: 'get-user-info-by-username',
-            text: `SELECT user_id, username, email, password, date_registered, icon_file_id, user_role_id
-                    FROM ${config.pgschema}.users WHERE username = $1`,
+            text: `SELECT user_id, username, email, password, date_registered, file_url, user_role_id
+                    FROM ${config.pgschema}.users
+                    LEFT JOIN ${config.pgschema}.files 
+                    ON users.icon_file_id = files.file_id
+                    WHERE username = $1`,
             values: [username]
         }
         

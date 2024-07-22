@@ -8,4 +8,5 @@ INSERT INTO mamall.room_modes (description)
 SELECT descr FROM UNNEST(ARRAY['private', 'open', 'closed']) descr;
 
 INSERT INTO mamall.user_roles (description, role_value) VALUES
-('guest', 0), ('cockroach', 1), ('peasant', 2), ('moderator', 150), ('admin', 230), ('creator', 255);
+('guest', 0), ('cockroach', 1), ('peasant', 2), ('moderator', 150), ('admin', 230), ('creator', 255),
+('interviewer', 230), ('candidate', 2);

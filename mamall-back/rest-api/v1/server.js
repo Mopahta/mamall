@@ -353,7 +353,7 @@ router.post("/login", upload.none(), async function(req, res) {
             if (token) {
                 res.cookie('token', token, {maxAge: 24 * 60 * 60 * 1000, httpOnly: true });
                 res.cookie('refresh_token', refresh_token, {maxAge: 24 * 60 * 60 * 1000, httpOnly: true, path: "/api/v1/refresh"});
-                res.status(200).json({username: username, user_id: userInfo.user_id});
+                res.status(200).json({username: username, user_id: userInfo.user_id, icon_path: userInfo.file_url});
             }
         }
     } 
@@ -487,7 +487,6 @@ router.post("/profile", verifyToken, upload.single("user_icon"), async function(
             if (token) {
                 res.cookie('token', token, {maxAge: 24 * 60 * 60 * 1000, httpOnly: true });
                 res.cookie('refresh_token', refresh_token, {maxAge: 24 * 60 * 60 * 1000, httpOnly: true, path: "/api/v1/refresh"});
-                res.status(200).json({username: username, user_id: userInfo.user_id});
             }
         } else {
             res.status(401);
@@ -503,21 +502,25 @@ router.post("/profile", verifyToken, upload.single("user_icon"), async function(
         if (!updated) {
             res.status(201);
             res.json({status: "NO_FILES_UPLOADED"});
+            return;
+        } else {
+            res.status(200).json({username: username, user_id: req.user.user_id});
+            return;
         }
-        return;
     }
 
     console.log(req.file);
     if (!updated && req.file && !req.file.mimetype.includes("image")) {
         res.status(415)
         return res.json({status: "INVALID_FILE_TYPE"});
+    } else {
+        let fileId = await db.addFileInfo(req.file.path, req.file.filename)
+
+        db.updateUserIcon(req.user.user_id, fileId);
+
+        res.status(200).json({username: username, user_id: req.user.user_id, icon_path: req.file.path}).end();
     }
 
-    let fileId = await db.addFileInfo(req.file.path, req.file.filename)
-
-    db.updateUserIcon(req.user.user_id, fileId);
-
-    res.status(201).end();
 })
 
 function validateUsername(username) {

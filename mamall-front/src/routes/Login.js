@@ -44,7 +44,7 @@ function Login({user, setUser}) {
         })
         .then(data => {
             if (data) {
-                setUser({auth: true, user_id: data.user_id, name: data.username});
+                setUser({auth: true, user_id: data.user_id, name: data.username, icon_path: data.icon_path});
                 navigate("/");
             }
         })

@@ -38,7 +38,7 @@ function ProfileEdit({user, setUser, setProfileEditorIsOpen}) {
             })
             .then(data => {
                 if (data && data.user_id && data.username) {
-                    setUser({auth: true, user_id: data.user_id, name: data.username});
+                    setUser({auth: true, user_id: data.user_id, name: data.username, icon_path: data.icon_path});
                 }
             })
             .catch(err => {
@@ -58,6 +58,7 @@ function ProfileEdit({user, setUser, setProfileEditorIsOpen}) {
 
     const checkField = async (event) => {
         console.log(event)
+        console.log(user)
     }
 
     const toggleChangePassword = async (event) => {
@@ -88,7 +89,7 @@ function ProfileEdit({user, setUser, setProfileEditorIsOpen}) {
                     <form className="ui form" method="post" id="edit-profile-form" encType="multipart/form-data"
                           onSubmit={submitDataChange}>
                         <div className="field edit-profile-avatar">
-                            <img className="ui small rounded image" src={noUserIcon} alt="contact"></img>
+                            <img className="ui small rounded image" src={user.icon_path ? (process.env.PUBLIC_URL + '/avatars/' + user.icon_path) : noUserIcon} alt="No Photo"></img>
                             <label className="ui button" htmlFor="file" type="button">Change photo</label>
                             <input type="file" id="file" accept="image/png, image/jpeg" name="user_icon" onChange={() => {
                                 console.log('11')
