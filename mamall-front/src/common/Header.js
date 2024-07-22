@@ -61,10 +61,10 @@ function Header({user, setUser}) {
                         :
                         <>
                             <Link className="item right" to="/login">
-                                Log In
+                                LOGIN
                             </Link>
                             <Link className="item" to="/signup">
-                                Sign Up
+                                SIGN UP
                             </Link>
                         </>
                     }

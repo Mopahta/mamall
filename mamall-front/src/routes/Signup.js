@@ -66,7 +66,7 @@ function Signup({user, setUser}) {
         <div className="ui vertically padded centered grid">
             <div className="four wide computer sixteen wide tablet column">
                 <div className="ui segment" id="left-segment">
-                    <h1>Sign Up</h1>
+                    <h1>SIGN UP</h1>
 
                     <form className="ui form" method="post" encType="multipart/form-data" onSubmit={formSubmit}>
                         <div className="field login-input">

@@ -118,9 +118,9 @@ const UserInteraction = memo(function UserInteraction({user, setRoom, socket}) {
                 <div className="ui basic button item positive" id="option-0" onClick={() => changeOption(chosen.contacts)}>
                     Contacts
                 </div>
-                <div className="ui basic button item" id="option-1" onClick={() => changeOption(chosen.rooms)}>
-                    Rooms
-                </div>
+                {/*<div className="ui basic button item" id="option-1" onClick={() => changeOption(chosen.rooms)}>*/}
+                {/*    Rooms*/}
+                {/*</div>*/}
                 <div className="ui basic button item" id="option-2" onClick={() => changeOption(chosen.pending)}>
                     Pending
                 </div>

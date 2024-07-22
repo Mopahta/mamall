@@ -19,13 +19,17 @@ const Index = memo(function Index({user, socket, room, changeRoom, audioTrack, w
             </div>
             <div className="ten wide computer sixteen wide tablet column">
                 {user.auth?
+
                 <Routes>
-                    <Route path="/" element={<Room user={user} room={room} socket={socket}
+                    {room.roomId != 0 ?
+                        <Route path="/" element={<Room user={user} room={room} socket={socket}
                                                    setRoom={changeRoom} audioTrack={audioTrack} webcamTrack={webcamTrack} />} />
+                    :
+                        <Route path="/" element={<RoomsList user={user} socket={socket} setRoom={changeRoom} />} />
+                    }
                 </Routes>
-                    // <RoomsList message={"Log in to use rooms."} />
                 :
-                <RoomsList message={"Log in to use rooms."} />
+                <RoomsList user={user} />
                 }
             </div>
         </div>
