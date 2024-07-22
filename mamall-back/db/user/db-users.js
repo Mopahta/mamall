@@ -40,7 +40,7 @@ const config = require('../config/config');
         let user;
         let query =  {
             name: 'get-user-info-by-id',
-            text: `SELECT user_id, username, email, date_registered, online_status_id, icon_file_id, user_role_id
+            text: `SELECT user_id, username, email, password, date_registered, online_status_id, icon_file_id, user_role_id
                     FROM ${config.pgschema}.users WHERE user_id = $1`,
             values: [id]
         }
@@ -70,8 +70,11 @@ const config = require('../config/config');
         let user;
         let query =  {
             name: 'get-user-info-by-username',
-            text: `SELECT user_id, username, email, password, date_registered, icon_file_id, user_role_id
-                    FROM ${config.pgschema}.users WHERE username = $1`,
+            text: `SELECT user_id, username, email, password, date_registered, file_url, user_role_id
+                    FROM ${config.pgschema}.users
+                    LEFT JOIN ${config.pgschema}.files 
+                    ON users.icon_file_id = files.file_id
+                    WHERE username = $1`,
             values: [username]
         }
         
@@ -195,7 +198,9 @@ const config = require('../config/config');
         let contacts = [];
         let query =  {
             name: 'get-user-contacts',
-            text: `SELECT user_id, contact_nickname, room_id, contact_since, username, icon_file_id
+            text: `SELECT user_id, contact_nickname, room_id, contact_since, username, file_url
+                    FROM 
+                    (SELECT user_id, contact_nickname, room_id, contact_since, username, icon_file_id
                     FROM 
                     (SELECT contact_id, room_id, contact_nickname, contact_since
                         FROM 
@@ -204,7 +209,9 @@ const config = require('../config/config');
                         WHERE u.user_id = $1 AND co.pending_invite = 0) AS cont 
                     INNER JOIN 
                     ${config.pgschema}.users 
-                    ON cont.contact_id = users.user_id;`,
+                    ON cont.contact_id = users.user_id) AS conts
+                    LEFT JOIN ${config.pgschema}.files 
+                               ON conts.icon_file_id = files.file_id;`,
             values: [id]
         }
         
@@ -303,6 +310,63 @@ const config = require('../config/config');
                 userInfo.email]
         }
         
+        try {
+            let res = await pool.query(query);
+        }
+        catch (err) {
+            console.error(err);
+            return err.code;
+        }
+
+        return 0;
+    }
+
+    module.exports.updateUserInfoById = async function(userInfo) {
+
+        if (!pool) {
+            console.error("Pool not initialized in db-users.")
+            return null
+        }
+
+        let query =  {
+            name: 'update-user-info',
+            text: `UPDATE 
+                    ${config.pgschema}.users 
+                    SET
+                    username = $1, email = $2 
+                    WHERE 
+                    user_id = $3;`,
+            values: [userInfo.username, userInfo.email, userInfo.user_id]
+        }
+
+        try {
+            let res = await pool.query(query);
+        }
+        catch (err) {
+            console.error(err);
+            return err.code;
+        }
+
+        return 0;
+    }
+
+    module.exports.updateUserPasswordById = async function(userInfo) {
+
+        if (!pool) {
+            console.error("Pool not initialized in db-users.")
+            return null
+        }
+
+        let query =  {
+            name: 'update-user-password',
+            text: `UPDATE 
+                    ${config.pgschema}.users 
+                    SET
+                    password = $1 
+                    WHERE user_id = $2;`,
+            values: [userInfo.password, userInfo.user_id]
+        }
+
         try {
             let res = await pool.query(query);
         }

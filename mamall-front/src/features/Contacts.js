@@ -127,7 +127,8 @@ function Contacts({user, callRoom}) {
                                     <i className="trash icon" onClick={() => deleteContact(item.user_id)}></i>
                                 </button>
                             </div>
-                            <img className="ui avatar image" src={noUserIcon} alt="contact"></img>
+                            <img className="ui avatar image"
+                                 src={item.file_url ? (process.env.PUBLIC_URL + '/avatars/' + item.file_url) : noUserIcon} alt="contact"></img>
                             <div className="content">
                                 <a className="header">{item.username}</a>
                                 <div className="description">{item.contact_nickname + " " + item.contact_since}</div>

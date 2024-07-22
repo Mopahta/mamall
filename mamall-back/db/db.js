@@ -2,6 +2,7 @@ const pg = require('pg');
 const config = require('./config/config');
 const users = require('./user/db-users');
 const rooms = require('./room/db-rooms');
+const files = require('./files/db-files');
 
 module.exports = {
     pool: null,
@@ -24,6 +25,7 @@ module.exports = {
 
         users.setPool(this.pool);
         rooms.setPool(this.pool);
+        files.setPool(this.pool);
 
         this.pool.on('connect', (client) => {
             console.log("New client connected to database.");
@@ -81,6 +83,10 @@ module.exports = {
     updateUserIcon: users.updateUserIcon,
 
     createUser: users.createUser,
+
+    updateUserInfoById: users.updateUserInfoById,
+
+    updateUserPasswordById: users.updateUserPasswordById,
 
     addContact: users.addContact,
 
@@ -148,5 +154,9 @@ module.exports = {
     getUserRoomsInfo: rooms.getUserRoomsInfo,
 
     getUserPublicRoomsInfo: rooms.getUserPublicRoomsInfo,
+
+    getPublicRoomsInfo: rooms.getPublicRoomsInfo,
+
+    addFileInfo: files.addFileInfo,
 
 };

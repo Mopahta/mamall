@@ -14,7 +14,7 @@ import {UserRoomContext} from "./context/UserRoomContext";
 
 function App () {
 
-    const [user, setUser] = useState({ auth: false, user_id: 0, name: ''});
+    const [user, setUser] = useState({ auth: false, user_id: 0, name: '', icon_path: ''});
     const [socketUrl, setSocketUrl] = useState(config.wsHost);
     const [webRtcSupport, setWRtcSupport] = useState(true);
 

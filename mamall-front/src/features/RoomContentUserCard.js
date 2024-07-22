@@ -22,10 +22,10 @@ function RoomContentUserCard({roomUser}) {
     return (
 
         <>
-            <div className="ui green inverted segment">
+            <div className="ui  segment">
                 {usersContext.userWebcamTracks[roomUser.user_id] != null ?
                     <div className="right floated content">
-                        <ReactPlayer url={usersContext.userWebcamTracks[roomUser.user_id]} width={200} height={150} playing={true} onStart={() => {
+                        <ReactPlayer url={usersContext.userWebcamTracks[roomUser.user_id]} width='100%' height='100%' playing={true} onStart={() => {
                             console.log("xuy")
                         }} />
                     </div>
@@ -33,8 +33,8 @@ function RoomContentUserCard({roomUser}) {
                     <div className="right floated content">
                     </div>
                 }
-                <img className="ui avatar image" src={noUserIcon} alt="room-user"></img>
-                <div className="content">
+                {/*<img className="ui avatar image" src={noUserIcon} alt="room-user"></img>*/}
+                <div className="content" style={{height: '100%'}}>
                     <a className="header">{roomUser.username}</a>
                     <div className="description">{roomUser.user_room_nickname + " " + roomUser.description}</div>
                 </div>

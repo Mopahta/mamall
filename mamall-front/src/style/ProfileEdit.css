@@ -1,0 +1,102 @@
+
+.edit-profile-header {
+    background: linear-gradient(270deg, #108353 0%, #117A8D 100%);
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+}
+
+#edit-profile-form {
+    padding: 15px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+#edit-profile-form > button {
+    left: 0% !important;
+}
+
+#edit-profile-form > .field {
+    width: 80%;
+}
+
+#edit-profile-form > .field.edit-profile-avatar {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-evenly;
+    align-items: center;
+}
+
+#create-room-form {
+    padding: 15px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+#create-room-form > button {
+    left: 0% !important;
+}
+
+#create-room-form > .field {
+    width: 80%;
+}
+
+#create-room-form > .field.edit-profile-avatar {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-evenly;
+    align-items: center;
+}
+
+.edit-profile-avatar > input {
+    display: none;
+}
+
+.edit-profile-avatar > label {
+    height: 100%;
+    background: #FFFFFF !important;
+    box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.25) !important;
+    border-radius: 16px !important;
+
+    font-family: 'Red Hat Display' !important;
+    font-style: normal !important;
+    font-weight: 700 !important;
+    font-size: 17px !important;
+    line-height: 18px !important;
+    text-align: center !important;
+    letter-spacing: 0.05em !important;
+
+    color: #12838D !important;
+}
+
+.edit-profile-input > label {
+    color: #37574F !important;
+
+    font-family: 'Red Hat Display';
+    font-style: normal;
+    font-weight: 700;
+    font-size: 18px !important;
+    line-height: 42px;
+    letter-spacing: 0.05em;
+
+    text-shadow: 0px 2px 4px rgba(0, 0, 0, 0.25);
+}
+
+.edit-profile-input > input {
+
+    background: #E6E6E6 !important;
+    box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.25) !important;
+    border-radius: 16px !important;
+
+}
+.edit-profile-input > input::placeholder {
+    color: #59A6AD !important;
+}
+
+#edit-profile-header-change-password {
+    position: absolute;
+    z-index: 5;
+    margin: 5px;
+}

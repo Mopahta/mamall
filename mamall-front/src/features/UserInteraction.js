@@ -4,6 +4,7 @@ import Contacts from "./Contacts";
 import Pending from "./Pending";
 import Rooms from "./Rooms";
 import CodeEditor from "./CodeEditor";
+import '../style/Base.css';
 
 const UserInteraction = memo(function UserInteraction({user, setRoom, socket}) {
 
@@ -97,38 +98,32 @@ const UserInteraction = memo(function UserInteraction({user, setRoom, socket}) {
     }, [setRoom, socket]);
 
     const changeOption = async (option) => {
-        choose(option);
 
-        // for (const property in chosen) {
-        //     if (chosen[property] === option) {
-        //         document.getElementById("option" + option).classList.add("active");
-        //     }
-        //     else {
-        //         document.getElementById("option" + option).classList.remove("active");
-        //     }
-        // }
+        document.getElementById("option-" + chosenOption).classList.remove("positive");
+        document.getElementById("option-" + option).classList.add("positive");
+        choose(option);
     }
 
     return (
         <div className="ui segment">
             <div className="ui secondary two item menu">
-                <a className="item" id="option-3" onClick={() => changeOption(chosen.editor)}>
+                <div className="ui basic button item" id="option-3" onClick={() => changeOption(chosen.editor)}>
                     Code Editor
-                </a>
-                <a className="item" id="option-4" onClick={() => changeOption(chosen.board)}>
-                    Drawing Board
-                </a>
+                </div>
+                {/*<div className="ui basic button item" id="option-4" onClick={() => changeOption(chosen.board)}>*/}
+                {/*    Drawing Board*/}
+                {/*</div>*/}
             </div>
             <div className="ui secondary three item menu">
-                <a className="item" id="option-0" onClick={() => changeOption(chosen.contacts)}>
+                <div className="ui basic button item positive" id="option-0" onClick={() => changeOption(chosen.contacts)}>
                     Contacts
-                </a>
-                <a className="item" id="option-1" onClick={() => changeOption(chosen.rooms)}>
-                    Rooms
-                </a>
-                <a className="item" id="option-2" onClick={() => changeOption(chosen.pending)}>
+                </div>
+                {/*<div className="ui basic button item" id="option-1" onClick={() => changeOption(chosen.rooms)}>*/}
+                {/*    Rooms*/}
+                {/*</div>*/}
+                <div className="ui basic button item" id="option-2" onClick={() => changeOption(chosen.pending)}>
                     Pending
-                </a>
+                </div>
             </div>
 
             <RenderOption user={user} chosenOption={chosenOption}/>
