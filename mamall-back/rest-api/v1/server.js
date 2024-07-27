@@ -30,7 +30,9 @@ const upload = multer({
         }})
 });
 
-app.use(cors({origin: config.corsOrigin, credentials: true}));
+let corsOrigins = config.corsOrigin.split(",")
+
+app.use(cors({origin: corsOrigins, credentials: true}));
 app.use(cookieParser());
 
 router.get("/contacts", verifyToken, async function (req, res) {
