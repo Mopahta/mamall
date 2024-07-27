@@ -11,7 +11,7 @@ RUN npm ci --only=production
 COPY db/. ./
 
 
-WORKDIR /app/src/rest-api
+WORKDIR /app/src/rest-api/v1
 COPY rest-api/v1/package*.json ./
 
 # RUN npm install
@@ -24,4 +24,4 @@ COPY secret.js ./
 
 EXPOSE 8080
 
-CMD ["node", "/app/src/rest-api/server.js"]
+CMD ["node", "/app/src/rest-api/v1/server.js"]
