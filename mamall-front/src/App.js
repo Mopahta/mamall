@@ -566,7 +566,7 @@ function App () {
     const socketStatuses = ["connecting", "open", "closing", "closed"];
 
     return (
-        <div style={{padding: "50px"}}>    
+        <div className="fullscreen">
             <Header user={user} setUser={setUser}/>
         <RoomUsersContext.Provider value={usersContext}>
             <UserRoomContext.Provider value={userRoomContext}>
