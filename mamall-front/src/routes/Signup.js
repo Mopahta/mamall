@@ -63,8 +63,8 @@ function Signup({user, setUser}) {
     }
 
     return (
-        <div className="ui centered grid">
-            <div className="four wide tablet column">
+        <div className="ui centered grid fullscreen">
+            <div className="tablet column left-size no-left-right-padding">
                 <div className="ui segment" id="left-segment">
                     <h1>SIGN UP</h1>
 
@@ -95,7 +95,7 @@ function Signup({user, setUser}) {
                     </form>
                 </div>
             </div>
-            <div className="four wide tablet column">
+            <div className="tablet column right-size no-left-right-padding">
                 <div className="ui segment" id="right-segment">
                     <h1>Have an account?</h1>
                     <Link className="ui button auth-action2" to="/login">Log In!</Link>
