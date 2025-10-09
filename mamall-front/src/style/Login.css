@@ -1,7 +1,22 @@
 /* Login */
 
+.left-size {
+    width: 60% !important;
+}
 
+.right-size {
+    width: 40% !important;
+}
 
+.no-left-right-padding {
+    padding-left: 0em !important;
+    padding-right: 0em !important;
+}
+
+.fullscreen {
+    width: 100% !important;
+    height: 100% !important;
+}
 
 div h1 {
     width: 100%;
@@ -13,7 +28,7 @@ div h1 {
     font-family: 'Red Hat Display';
     font-style: normal;
     font-weight: 700;
-    font-size: 32px;
+    font-size: 3em;
     line-height: 85px;
     /* identical to box height */
     text-align: center;
@@ -27,30 +42,41 @@ div h1 {
 
 #right-segment {
     height: 100%;
+    width: 100%;
 
-    background: linear-gradient(180deg, #FFFFFF 0%, #A0FFE8 100%);
+    background-color: #2C0571 !important;
     display: flex;
     flex-direction: column;
     justify-content: center;
+    padding-bottom: 15em !important;
 }
 
 
 /* Rectangle 4 */
 
 #left-segment {
+    height: 100%;
+    width: 100%;
 
-    background: linear-gradient(180deg, #108353 0%, #106F8E 100%);
-    box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.25);
+    background: linear-gradient(0deg, #492A82 0%, #2C0571 100%);
+    box-shadow: 0px 0px 0px !important;
+    border: 0px !important;
+    display: flex;
+    flex-direction: column !important;
+    justify-content: center !important;
+    padding-bottom: 14em !important;
 }
 
 .login-input > label {
     color: #FFFFFF !important;
+    font-size: 1.45em !important;
+    padding-left: 0.8em;
 }
 
 #right-segment > h1 {
     top: 15%;
-    color: #37574F;
-    line-height: 49px;
+    line-height: 1.6em;
+    font-size: 3em;
 }
 
 
@@ -65,18 +91,20 @@ button {
     font-family: 'Red Hat Display' !important;
     font-style: normal !important;
     font-weight: 700 !important;
-    font-size: 17px !important;
+    font-size: 2em !important;
     line-height: 18px !important;
     text-align: center !important;
     letter-spacing: 0.05em !important;
 
-    color: #12838D !important;
+    color: #4811AE !important;
 }
 
 form > button {
+    margin-top: 0.5em !important;
+    margin-right: 0em !important;
     position: relative;
     width: 40%;
-    height: 5%;
+    height: 25%;
     left: 30%;
 
 }
@@ -84,22 +112,18 @@ form > button {
 
 /* Rectangle 8 */
 div > .ui.button.auth-action2  {
-
     position: relative;
     width: 50%;
-    /*height: 15%;*/
     left: 25%;
 
-    background: linear-gradient(90deg, #108353 0%, #106F8E 100%);
+    background: linear-gradient(90deg, #7945D6 0%, #926CD6 100%);
     box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.25);
     border-radius: 16px;
 
     font-family: 'Red Hat Display';
     font-style: normal;
     font-weight: 700;
-    font-size: 17px;
-    line-height: 18px;
-    text-align: center;
+    font-size: 2em;
     letter-spacing: 0.05em;
 
     color: #FFFFFF;
@@ -110,9 +134,10 @@ div > .ui.button.auth-action2  {
 /* Rectangle 5 */
 
 input {
-    background: linear-gradient(270deg, #C3FFE2 0%, #D0FFF7 100%) !important;
+    background: linear-gradient(90deg, #7945D6 0%, #926CD6 100%) !important;
     box-shadow: inset 0px 4px 6px rgba(0, 0, 0, 0.25) !important;
     border-radius: 16px !important;
+    font-size: 1.2em !important;
 }
 
 

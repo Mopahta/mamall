@@ -8,8 +8,8 @@ import RoomsList from "../features/RoomsList";
 const Index = memo(function Index({user, socket, room, changeRoom, audioTrack, webcamTrack}) {
 
     return (
-        <div className="ui vertically padded stackable grid">
-            <div className="six wide computer sixteen wide tablet column">
+        <div className="ui stackable grid padding-left-right">
+            <div className="six wide computer column">
                 {user.auth?
                 <UserInteraction user={user} setRoom={changeRoom} socket={socket} />
                 :
@@ -17,7 +17,7 @@ const Index = memo(function Index({user, socket, room, changeRoom, audioTrack, w
                 }
 
             </div>
-            <div className="ten wide computer sixteen wide tablet column">
+            <div className="ten wide computer column">
                 {user.auth?
 
                 <Routes>
