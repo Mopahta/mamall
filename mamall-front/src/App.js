@@ -329,6 +329,8 @@ function App () {
                     .find((codec) => codec.mimeType.toLowerCase() === 'video/h264'),
                 appData: {streamType: "webcam"}
             });
+        
+        addUserVideoTrack(user.user_id, new MediaStream([webcamTrack.current]));
 
     }
 
