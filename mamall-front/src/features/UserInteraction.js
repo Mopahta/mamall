@@ -99,29 +99,21 @@ const UserInteraction = memo(function UserInteraction({user, setRoom, socket}) {
 
     const changeOption = async (option) => {
 
-        document.getElementById("option-" + chosenOption).classList.remove("positive");
-        document.getElementById("option-" + option).classList.add("positive");
+        document.getElementById("option-" + chosenOption).classList.remove("pos");
+        document.getElementById("option-" + option).classList.add("pos");
         choose(option);
     }
 
     return (
-        <div className="ui segment">
-            <div className="ui secondary two item menu">
-                <div className="ui basic button item" id="option-3" onClick={() => changeOption(chosen.editor)}>
-                    Code Editor
-                </div>
-                {/*<div className="ui basic button item" id="option-4" onClick={() => changeOption(chosen.board)}>*/}
-                {/*    Drawing Board*/}
-                {/*</div>*/}
-            </div>
+        <div className="ui segment transp">
             <div className="ui secondary three item menu">
-                <div className="ui basic button item positive" id="option-0" onClick={() => changeOption(chosen.contacts)}>
+                <div className="button fonts item pos fonts-color-base" id="option-0" onClick={() => changeOption(chosen.contacts)}>
                     Contacts
                 </div>
                 {/*<div className="ui basic button item" id="option-1" onClick={() => changeOption(chosen.rooms)}>*/}
                 {/*    Rooms*/}
                 {/*</div>*/}
-                <div className="ui basic button item" id="option-2" onClick={() => changeOption(chosen.pending)}>
+                <div className="fonts button item fonts-color-base" id="option-2" onClick={() => changeOption(chosen.pending)}>
                     Pending
                 </div>
             </div>

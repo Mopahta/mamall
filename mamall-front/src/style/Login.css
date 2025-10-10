@@ -40,6 +40,10 @@ div h1 {
 
 /* Rectangle 2 */
 
+#create-room-button {
+    background: #4811AE !important;
+}
+
 #right-segment {
     height: 100%;
     width: 100%;
@@ -136,8 +140,8 @@ div > .ui.button.auth-action2  {
 input {
     background: linear-gradient(90deg, #7945D6 0%, #926CD6 100%) !important;
     box-shadow: inset 0px 4px 6px rgba(0, 0, 0, 0.25) !important;
-    border-radius: 16px !important;
-    font-size: 1.2em !important;
+    font-size: 1.4em !important;
+    margin-right: 0.5em !important;
 }
 
 

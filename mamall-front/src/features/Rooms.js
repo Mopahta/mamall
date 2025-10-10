@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import * as config from "../config/config";
 import Error from "../common/Error";
 import * as valid from "../common/validation";
+import '../style/Base.css'
 
 function Rooms({user, callRoom}) {
     const [error, setError] = useState(null);
@@ -86,7 +87,7 @@ function Rooms({user, callRoom}) {
             </form>
 
             {!isLoaded?
-                <div className="ui segment ">
+                <div className="ui segment">
                     <div>Loading...</div>
                 </div>
                 :
@@ -112,7 +113,7 @@ function Rooms({user, callRoom}) {
                     </div>
                     :
                     <div className="content">
-                        <div className="header">No rooms added</div>
+                        <div className="header fonts">No rooms added</div>
                     </div>
                 }
                 </>

@@ -2,6 +2,7 @@ import { useState } from "react";
 import {ModalContent, ModalHeader} from "semantic-ui-react";
 import '../style/ProfileEdit.css';
 import './null.jpg'
+import '../style/Base.css';
 import noUserIcon from "./null.jpg";
 import * as config from "../config/config";
 import * as valid from "../common/validation";
@@ -48,13 +49,13 @@ function CreateRoom({setIsRoomCreation}) {
         <div>
             <ModalHeader className="edit-profile-header">
                 <h1>Create Room</h1>
-                <div className="ui basic icon button" id='profile-editor-exit'
+                <div className="ui basic icon button top-right-part" id='profile-editor-exit'
                      onClick={() => setIsRoomCreation(false)}>
                     <i className="x icon"/>
                 </div>
             </ModalHeader>
             <ModalContent>
-                <form className="ui form" method="post" id="create-room-form" encType="multipart/form-data"
+                <form className="ui form color-backup" method="post" id="create-room-form" encType="multipart/form-data"
                       onSubmit={createRoom}>
 
                     <div className="field edit-profile-input">

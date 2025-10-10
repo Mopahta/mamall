@@ -35,7 +35,7 @@ function Header({user, setUser}) {
                 </div>
                 <div className="item">
                     <header className="app-header">
-                        <b>M</b>amall
+                        MAMALL
                     </header>
                 </div>
                 <Link className="item" to="/">
@@ -53,7 +53,7 @@ function Header({user, setUser}) {
                         </Modal>
                         <Link className="item">
                             <div className="ui" type='submit' onClick={handleLogout}>
-                                Log Out
+                                LOG OUT
                             </div>
                         </Link>
                     </>

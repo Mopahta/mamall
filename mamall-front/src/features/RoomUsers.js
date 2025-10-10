@@ -3,6 +3,7 @@ import { RoomUsersContext } from "../context/RoomUsersContext";
 import * as valid from "../common/validation";
 import * as config from "../config/config";
 import noUserIcon from './null.jpg';
+import "../style/Base.css"
 
 function RoomUsers({user, room, socket}) {
 
@@ -83,25 +84,9 @@ function RoomUsers({user, room, socket}) {
     return (
 
         <>
-
-        {room.roomModeId !== 1 ?
-            <form className="ui form" method="post" encType="multipart/form-data" onSubmit={addUserToRoom}>
-                <div className="grouped fields" style={{ display: "flex" }}>
-                    <div className="field" style={{ flex: "1 2 auto" }}>
-                        <div className="ui mini action input" >
-                            <input type="text" id="username" name="username" placeholder="Add user to room" />
-                            <button className="ui basic button" id="add-user-button" type="submit">Add</button>
-                        </div>
-                    </div>
-                </div>
-            </form>
-            :
-            <>
-            </>
-        }
         {usersContext.roomUsers != null?
             usersContext.roomUsers.length !== 0?
-                <div className="ui segment">
+                <div className="ui segment color-backup">
                     <div className="ui list">
                     {usersContext.roomUsers.map(item => 
                         <div className="item" key={item.user_id}>

@@ -1,6 +1,7 @@
 import {useContext} from "react";
 import { RoomUsersContext } from "../context/RoomUsersContext";
 import RoomContentUserCard from "./RoomContentUserCard";
+import "../style/Base.css"
 
 function RoomContent({user, room, socket}) {
 

@@ -7,3 +7,40 @@
     color: #FFFFFF !important;
     background-color: #4811AE !important;
 }
+
+.positive-button {
+    background: 0 0 !important;
+    box-shadow: 0 0 0 1px #FFFFFF inset !important;
+    color: #FFFFFF !important;
+}
+
+.color-backup {
+    background-color: #492A82 !important;
+}
+
+.transp {
+    color: #FFFFFF !important;
+    background-color: #2F137A !important;
+}
+
+.pos {
+    background-color: #FFFFFF !important;
+}
+
+.fonts {
+    font-size: 1.2em !important;
+}
+
+.fonts-color-base {
+    color: #926CD6 !important;
+}
+
+.fonts-color-backup {
+    color: #FFFFFF !important;
+}
+
+.top-right-part {
+    position: absolute;
+    top: 0;
+    right: 0;
+}

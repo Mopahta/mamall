@@ -3,6 +3,7 @@ import * as config from "../config/config";
 import Error from "../common/Error";
 import * as valid from "../common/validation";
 import noUserIcon from './null.jpg';
+import '../style/Base.css'
 
 function Contacts({user, callRoom}) {
     const [error, setError] = useState(null);
@@ -103,14 +104,14 @@ function Contacts({user, callRoom}) {
                     <div className="field" style={{ flex: "1 2 auto" }}>
                         <div className="ui mini action input" >
                             <input type="text" id="username" name="username" placeholder="Add contact (username)" />
-                            <button className="ui basic button" id="add-contact-button" type="submit">Add</button>
+                            <button className="ui button" id="add-contact-button" type="submit">Add</button>
                         </div>
                     </div>
                 </div>
             </form>
 
             {!isLoaded?
-                <div className="ui segment ">
+                <div className="ui segment">
                     <div>Loading...</div>
                 </div>
                 :
@@ -138,7 +139,7 @@ function Contacts({user, callRoom}) {
                     </div>
                     :
                     <div className="content">
-                        <div className="header">No contacts added</div>
+                        <div className="header fonts">No contacts added</div>
                     </div>
                 }
                 </>

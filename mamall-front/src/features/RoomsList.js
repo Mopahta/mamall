@@ -4,6 +4,7 @@ import Error from "../common/Error";
 import * as valid from "../common/validation";
 import Rooms from "./Rooms";
 import '../style/RoomList.css';
+import '../style/Base.css';
 import {Modal} from "semantic-ui-react";
 import CreateRoom from "./CreateRoom";
 
@@ -139,20 +140,8 @@ function RoomsList({user, socket, setRoom}) {
         return (
 
             <>
-            <form className="ui form" method="post" encType="multipart/form-data" >
-                <div className="grouped fields" style={{ display: "flex" }}>
-                    <div className="field" style={{ flex: "1 2 auto" }}>
-                        <div className="ui mini action input" >
-                            <input type="text" id="roomname" name="roomname" placeholder="Part of Rooms' Name"
-                                   onChange={(event) => filterRooms(event, filterMethod.byName)}/>
-                            <button className="ui basic button" id="create-room-button" type="submit">Filter by Name</button>
-                        </div>
-                    </div>
-                </div>
-            </form>
-
             {!isLoaded?
-                <div className="ui segment ">
+                <div className="ui segment">
                     <div>Loading...</div>
                 </div>
                 :
@@ -169,10 +158,10 @@ function RoomsList({user, socket, setRoom}) {
                                                 <div className="description">{item.description}</div>
                                                 <div className="description">Participants: {item.users_amount}</div>
                                             </div>
-                                            <div className="right floated content">
+                                            <div className="right floated content" onClick={() => joinRoom(item)}>
                                                 {user && user.auth ?
                                                     <button className="ui icon button" id="call-room">
-                                                        <i className="phone icon" onClick={() => joinRoom(item)}></i>
+                                                        <i className="phone icon"></i>
                                                     </button>
                                                     :
                                                     <></>
@@ -185,33 +174,9 @@ function RoomsList({user, socket, setRoom}) {
                                     </div>
                                 )
                             :
-                            <div className="content">
-                                <div className="header">No rooms available</div>
+                            <div>
                             </div>
                             }
-                            <div className="four wide column" key={0}>
-                                {user && user.auth ?
-                                    <div className="ui inverted segment call-room-card"
-                                         style={{background: 'linear-gradient(270deg, #C3FFE2 0%, #D0FFF7 100%)',
-                                             height: '100%'}}>
-                                        <div className="content">
-                                            <a className="header" style={{color: '#000000'}}>Create room</a>
-                                        </div>
-                                        <div className="right floated content">
-                                            <button className="ui icon button" id="call-room">
-                                                <i className="plus icon" onClick={() => setIsRoomCreation(true)}></i>
-                                            </button>
-                                        </div>
-                                        <Modal dimmer={'inverted'} open={isRoomCreation}
-                                               onClose={() => setIsRoomCreation(false)}>
-
-                                            <CreateRoom setIsRoomCreation={setIsRoomCreation}/>
-                                        </Modal>
-                                    </div>
-                                    :
-                                    <></>
-                                }
-                            </div>
                         </div>
                     </div>
                 </>

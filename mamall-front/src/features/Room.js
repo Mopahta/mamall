@@ -24,11 +24,11 @@ const Room = memo(function Room({user, room, socket, setRoom, audioTrack, webcam
         if (audioTrack.enabled) {
             audioTrack.enabled = false;
 
-            document.getElementById("mute-microphone").classList.add("positive");
+            document.getElementById("mute-microphone").classList.add("positive-button");
         } else {
             audioTrack.enabled = true;
 
-            document.getElementById("mute-microphone").classList.remove("positive");
+            document.getElementById("mute-microphone").classList.remove("positive-button");
         }
 
     }
@@ -39,14 +39,14 @@ const Room = memo(function Room({user, room, socket, setRoom, audioTrack, webcam
         if (webcamTrack.enabled) {
             webcamTrack.enabled = false;
 
-            document.getElementById("webcam-status").classList.remove("positive");
+            document.getElementById("webcam-status").classList.remove("positive-button");
         } else {
             webcamTrack.enabled = true;
-            document.getElementById("webcam-status").classList.add("positive");
+            document.getElementById("webcam-status").classList.add("positive-button");
         }
     }
     return (
-        <div className="ui segment">
+        <div className="ui segment transp">
             {room.roomId != 0 ?
 
                 <div className="ui container" >
@@ -63,7 +63,7 @@ const Room = memo(function Room({user, room, socket, setRoom, audioTrack, webcam
                         <div className="ui basic icon button" id="mute-microphone" onClick={() => toggleMute()}>
                             <i className="microphone slash icon"/>
                         </div>
-                        <div className="ui basic icon button positive" id="webcam-status" onClick={() => toggleWebcam()}>
+                        <div className="ui basic icon button positive-button" id="webcam-status" onClick={() => toggleWebcam()}>
                             <i className="video icon"/>
                         </div>
                         <div className="ui basic icon button" onClick={() => leaveRoom()}>
@@ -73,7 +73,7 @@ const Room = memo(function Room({user, room, socket, setRoom, audioTrack, webcam
                 </div>
                 </div>
                 :
-                <div className="segment eight wide column">
+                <div className="segment eight wide column fonts">
                     <h3>No room chosen.</h3>
                 </div>
             }

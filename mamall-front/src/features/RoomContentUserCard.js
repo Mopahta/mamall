@@ -2,6 +2,7 @@ import {useContext, useEffect} from "react";
 import { RoomUsersContext } from "../context/RoomUsersContext";
 import noUserIcon from './null.jpg';
 import ReactPlayer from "react-player";
+import "../style/Base.css";
 
 function RoomContentUserCard({roomUser}) {
 
@@ -22,7 +23,7 @@ function RoomContentUserCard({roomUser}) {
     return (
 
         <>
-            <div className="ui  segment">
+            <div className="ui segment color-backup">
                 {usersContext.userWebcamTracks[roomUser.user_id] != null ?
                     <div className="right floated content">
                         <ReactPlayer url={usersContext.userWebcamTracks[roomUser.user_id]} width='100%' height='100%' playing={true} onStart={() => {

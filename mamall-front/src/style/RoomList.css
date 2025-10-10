@@ -4,3 +4,9 @@
     justify-content: space-between;
     align-items: stretch;
 }
+
+.notify-text {
+    padding-left: 0.5em;
+    font-size: 1.3em;
+    color: #FFFFFF;
+}

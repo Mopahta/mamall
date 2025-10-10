@@ -74,13 +74,15 @@ function ProfileEdit({user, setUser, setProfileEditorIsOpen}) {
     return (
         <div>
             <ModalHeader className="edit-profile-header">
-                <button className="ui toggle button" id="edit-profile-header-change-password" onClick={toggleChangePassword}>
+                <div className="grid">
+                    <button className="ui toggle button" id="edit-profile-header-change-password" onClick={toggleChangePassword}>
                     Change password
-                </button>
-                <h1>Edit Profile</h1>
-                <div className="ui basic icon button" id='profile-editor-exit'
-                     onClick={() => setProfileEditorIsOpen(false)}>
-                    <i className="x icon"/>
+                    </button>
+                    <h1>Edit Profile</h1>
+                    <div className="ui basic icon button" id='profile-editor-exit'
+                        onClick={() => setProfileEditorIsOpen(false)}>
+                        <i className="x icon"/>
+                    </div>
                 </div>
             </ModalHeader>
             <ModalContent>

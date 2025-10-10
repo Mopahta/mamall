@@ -103,7 +103,7 @@ function Pending({user}) {
                 </div>
                 :
                 <div className="content">
-                    <div className="header">No pending contacts</div>
+                    <div className="header fonts">No pending contacts</div>
                 </div>
             }
             </>)
